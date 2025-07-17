@@ -122,7 +122,7 @@ export const getCoordinatesFromAddress = async (
   address: string,
 ): Promise<MapPosition> => {
   try {
-    await loadGoogleMapsAPI();
+    const google = await loadGoogleMapsAPI();
     const geocoder = new google.maps.Geocoder();
 
     return new Promise((resolve, reject) => {
