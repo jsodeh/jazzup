@@ -254,11 +254,19 @@ export default function Index() {
       </div>
 
       {/* Alert Markers */}
-      <div className="absolute top-52 left-20">
-        <div className="w-8 h-8 bg-alert rounded-full flex items-center justify-center shadow-lg">
+      {alerts.map((alert, index) => (
+        <button
+          key={alert.id}
+          onClick={() => handleAlertClick(alert)}
+          className="absolute top-52 left-20 w-8 h-8 bg-alert rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+          style={{
+            left: `${20 + index * 40}%`,
+            top: `${52 - index * 10}%`,
+          }}
+        >
           <MapPin className="w-5 h-5 text-white" />
-        </div>
-      </div>
+        </button>
+      ))}
 
       {/* Action Buttons */}
       <div
