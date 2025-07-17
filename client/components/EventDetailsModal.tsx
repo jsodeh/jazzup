@@ -62,6 +62,11 @@ export default function EventDetailsModal({
   if (!isOpen || !alert) return null;
 
   const handleVote = (direction: "up" | "down") => {
+    // Don't allow voting on welcome alert
+    if (alert.id === "welcome") {
+      return;
+    }
+
     if (!isAuthenticated) {
       onAuthRequired();
       return;
