@@ -100,7 +100,7 @@ export const getAddressFromCoordinates = async (
   position: MapPosition,
 ): Promise<string> => {
   try {
-    await loadGoogleMapsAPI();
+    const google = await loadGoogleMapsAPI();
     const geocoder = new google.maps.Geocoder();
 
     return new Promise((resolve, reject) => {
