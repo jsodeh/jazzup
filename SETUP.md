@@ -353,44 +353,195 @@ With proper setup, you'll have access to:
 - **Touch-friendly interactions** and gestures
 - **Offline functionality** for critical features
 
-## Testing
+## 🧪 Testing the Application
 
-To test the app locally:
+### Local Development Testing
 
-1. Make sure both Google Maps and Supabase are configured
-2. Run `npm run dev`
-3. Go to `/onboarding` to test the complete flow
-4. Create a test account and explore features
+1. **Verify Configuration**
 
-## Production Deployment
+   ```bash
+   npm run typecheck  # Check TypeScript errors
+   npm run test       # Run test suite
+   ```
 
-For production:
+2. **Test Core Features**
 
-1. Update CORS settings in Supabase
-2. Configure proper API key restrictions in Google Cloud
-3. Set up domain-specific environment variables
-4. Enable proper security headers
-5. Configure SSL/TLS certificates
+   - Visit `http://localhost:8080`
+   - Allow location permission when prompted
+   - Verify welcome notification appears with your city
+   - Test alert interactions (viewing, modal opening)
+   - Try authentication flows (voting, commenting)
 
-## Troubleshooting
+3. **Test Different Scenarios**
+   - **With location**: Full functionality with real coordinates
+   - **Without location**: Fallback to San Jose with mock data
+   - **Different browsers**: Chrome, Firefox, Safari, Mobile browsers
+   - **Different screen sizes**: Mobile, tablet, desktop
 
-**Google Maps not loading:**
+### Feature Testing Checklist
 
-- Check API key is correct
-- Verify APIs are enabled
-- Check browser console for errors
-- Ensure domain is allowed
+- [ ] Location permission requested immediately
+- [ ] Welcome card shows user's city
+- [ ] Map displays user location (blue dot)
+- [ ] Alert markers are clickable
+- [ ] Event details modal opens correctly
+- [ ] Authentication prompts appear for protected actions
+- [ ] Navigation works between pages
+- [ ] Responsive design on mobile devices
 
-**Supabase connection issues:**
+## 🌐 Production Deployment
 
-- Verify URL and anon key
-- Check network connectivity
-- Review browser console errors
-- Confirm RLS policies are correct
+### Pre-deployment Checklist
 
-**Location permissions:**
+1. **Security Configuration**
 
-- Test on HTTPS (required for geolocation)
-- Check browser settings
-- Verify permission handling code
-- Test fallback scenarios
+   - [ ] Update CORS settings in Supabase for your domain
+   - [ ] Restrict Google Maps API key to production domains
+   - [ ] Enable Row Level Security policies
+   - [ ] Configure rate limiting
+
+2. **Environment Setup**
+
+   ```bash
+   # Production environment variables
+   VITE_GOOGLE_MAPS_API_KEY=your_production_api_key
+   VITE_SUPABASE_URL=your_production_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_production_anon_key
+   ```
+
+3. **Build and Deploy**
+   ```bash
+   npm run build      # Create production build
+   npm run start      # Test production build locally
+   ```
+
+### Deployment Platforms
+
+#### **Netlify (Recommended)**
+
+```bash
+# Build command
+npm run build
+
+# Publish directory
+dist/spa
+
+# Environment variables
+# Add your VITE_* variables in Netlify dashboard
+```
+
+#### **Vercel**
+
+```bash
+# Build command
+npm run build
+
+# Output directory
+dist/spa
+```
+
+#### **Custom Server**
+
+```bash
+npm run build
+npm run start  # Runs Express server
+```
+
+### SSL/TLS Configuration
+
+- **Required for Geolocation API** - HTTPS is mandatory
+- **Let's Encrypt** - Free SSL certificates
+- **Cloudflare** - CDN with automatic HTTPS
+
+## 🔧 Troubleshooting
+
+### **Google Maps Issues**
+
+**Maps not loading:**
+
+- ✅ Verify API key is correct and has no extra spaces
+- ✅ Check that all required APIs are enabled
+- ✅ Ensure billing is enabled on your Google Cloud project
+- ✅ Check browser console for specific error messages
+- ✅ Verify domain restrictions allow your current domain
+
+**"This page can't load Google Maps correctly":**
+
+- ✅ API key restrictions are too strict
+- ✅ Billing account is required for Maps APIs
+- ✅ Check quotas haven't been exceeded
+
+### **Supabase Connection Issues**
+
+**Database connection failed:**
+
+- ✅ Verify VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
+- ✅ Check network connectivity
+- ✅ Ensure Supabase project is active (not paused)
+- ✅ Review browser console for specific errors
+
+**RLS policy errors:**
+
+- ✅ Confirm Row Level Security policies are properly configured
+- ✅ Check user authentication status
+- ✅ Verify policy conditions match your use case
+
+### **Location Permission Issues**
+
+**Location not working:**
+
+- ✅ **HTTPS required** - Geolocation only works on secure connections
+- ✅ Check browser location settings
+- ✅ Verify permission handling code
+- ✅ Test fallback scenarios (permission denied)
+
+**Permission denied:**
+
+- ✅ App should gracefully fall back to default location
+- ✅ User can still view all features with mock data
+- ✅ Provide clear instructions for enabling location
+
+### **Build and Development Issues**
+
+**TypeScript errors:**
+
+```bash
+npm run typecheck  # Identify specific type issues
+```
+
+**Dependency issues:**
+
+```bash
+rm -rf node_modules package-lock.json
+npm install  # Clean install
+```
+
+**Port conflicts:**
+
+```bash
+# Change port in package.json or vite.config.ts
+npm run dev -- --port 3000
+```
+
+### **Performance Optimization**
+
+- **Code splitting** - Implement dynamic imports for large components
+- **Image optimization** - Compress and serve appropriate sizes
+- **Bundle analysis** - Use `npm run build -- --analyze`
+- **CDN usage** - Serve static assets from CDN
+
+### **Monitoring and Analytics**
+
+- **Error tracking** - Integrate Sentry for production error monitoring
+- **Performance monitoring** - Use Google Analytics or similar
+- **User feedback** - Implement feedback collection system
+- **Usage analytics** - Track feature adoption and user flows
+
+## 📞 Getting Help
+
+- **Documentation**: Check this setup guide first
+- **GitHub Issues**: Report bugs and feature requests
+- **Community Forum**: Connect with other developers
+- **Stack Overflow**: Tag questions with `jazzup` and `supabase`
+
+Remember to never commit API keys or sensitive information to version control. Always use environment variables for configuration.
