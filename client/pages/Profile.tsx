@@ -89,6 +89,32 @@ export default function Profile() {
 
       {/* Menu Options */}
       <div className="flex-1 p-4 space-y-2">
+        <Link
+          to="/verification"
+          className="w-full bg-card rounded-2xl p-4 flex items-center gap-3"
+        >
+          <CheckCircle className="w-5 h-5 text-green-500" />
+          <div className="flex-1 text-left">
+            <p className="font-medium text-foreground">Account Verification</p>
+            <p className="text-sm text-muted-foreground">
+              Enhance your trust score
+            </p>
+          </div>
+          <div className="bg-green-500/20 px-2 py-1 rounded-lg">
+            <span className="text-xs font-medium text-green-500">VERIFIED</span>
+          </div>
+        </Link>
+
+        <button className="w-full bg-card rounded-2xl p-4 flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-500" />
+          <div className="flex-1 text-left">
+            <p className="font-medium text-foreground">Emergency Settings</p>
+            <p className="text-sm text-muted-foreground">
+              Emergency contacts and features
+            </p>
+          </div>
+        </button>
+
         <button className="w-full bg-card rounded-2xl p-4 flex items-center gap-3">
           <Bell className="w-5 h-5 text-muted-foreground" />
           <div className="flex-1 text-left">
