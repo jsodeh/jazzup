@@ -143,6 +143,7 @@ export default function Index() {
   } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [welcomeAlert, setWelcomeAlert] = useState<Alert | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   // Request location permission immediately on app load
   useEffect(() => {
