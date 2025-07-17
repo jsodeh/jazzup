@@ -77,7 +77,7 @@ const mockAlerts: Alert[] = [
         user: "HENRY",
         text: "This intersection has had security issues before. Glad everyone is safe.",
         votes: 12,
-        avatar: "��",
+        avatar: "👨",
         timeAgo: "12min ago",
         userVote: null,
       },
@@ -581,7 +581,7 @@ export default function Index() {
         </button>
       </div>
 
-      {/* Loading State */}
+      {/* Loading/Error State */}
       {isLoadingLocation && (
         <div className="absolute top-20 left-4 right-4 bg-card rounded-2xl p-4 shadow-lg border border-border z-30">
           <div className="flex items-center gap-3">
@@ -594,6 +594,40 @@ export default function Index() {
                 Getting alerts for your area
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Location Error State */}
+      {locationError && !isLoadingLocation && (
+        <div className="absolute top-20 left-4 right-4 bg-card rounded-2xl p-4 shadow-lg border border-border z-30">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 text-yellow-500">⚠️</div>
+            <div className="flex-1">
+              <p className="font-medium text-foreground mb-1">
+                Location unavailable
+              </p>
+              <p className="text-sm text-muted-foreground mb-2">
+                {locationError}. Showing alerts for San Jose area.
+              </p>
+              <button
+                onClick={() => {
+                  setLocationError(null);
+                  setIsLoadingLocation(true);
+                  // Retry location request
+                  handleLocationRequest();
+                }}
+                className="text-sm text-alert font-medium hover:underline"
+              >
+                Try again
+              </button>
+            </div>
+            <button
+              onClick={() => setLocationError(null)}
+              className="p-1 rounded-full hover:bg-muted/50"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
           </div>
         </div>
       )}
