@@ -56,25 +56,39 @@ VITE_APP_VERSION=1.0.0
 VITE_VAPID_PUBLIC_KEY=your_vapid_public_key_here
 ```
 
-### 3. Google Maps API Setup
+### 4. Google Maps API Setup
+
+#### 4.1 Create Google Cloud Project
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Enable these APIs:
-   - Maps JavaScript API
-   - Places API
-   - Geocoding API
-   - Directions API
-4. Create credentials (API Key)
-5. Restrict the API key to your domain
-6. Copy the API key to your `.env` file
+2. Create a new project named "Jazzup" or select existing one
+3. Enable billing for your project (required for Maps APIs)
 
-**Required Google Maps APIs:**
+#### 4.2 Enable Required APIs
 
-- `Maps JavaScript API` - For displaying maps
-- `Places API` - For location search and autocomplete
-- `Geocoding API` - For address/coordinate conversion
-- `Directions API` - For navigation and routing
+Navigate to the API Library and enable these APIs:
+
+- **Maps JavaScript API** - Core mapping functionality
+- **Places API** - Location search and autocomplete
+- **Geocoding API** - Address/coordinate conversion
+- **Directions API** - Navigation and routing
+- **Geolocation API** - Device location services
+
+#### 4.3 Create and Configure API Key
+
+1. Go to "Credentials" in the Google Cloud Console
+2. Click "Create Credentials" → "API Key"
+3. **Important**: Restrict your API key for security:
+   - **Application restrictions**: HTTP referrers
+   - **Website restrictions**: Add your domains (localhost:8080, your-domain.com)
+   - **API restrictions**: Select only the APIs listed above
+4. Copy the API key to your `.env` file
+
+#### 4.4 Set Up API Quotas (Optional)
+
+- Monitor usage in the Google Cloud Console
+- Set up billing alerts to avoid unexpected charges
+- Consider quota limits for production deployment
 
 ### 4. Supabase Database Setup
 
