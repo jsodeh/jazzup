@@ -516,7 +516,8 @@ export default function Index() {
         </Link>
         <button
           onClick={handleLocationRequest}
-          className="w-12 h-12 bg-alert rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+          className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+          title="Center on your location"
         >
           <Target className="w-6 h-6 text-white" />
         </button>
