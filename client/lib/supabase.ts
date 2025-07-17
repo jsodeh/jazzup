@@ -3,37 +3,72 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// For development without Supabase, create a mock client
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("Supabase credentials not configured. Using mock client for development.");
-  // Export a mock client that won't break the app
-  export const supabase = {
+// Create either a real or mock Supabase client
+let supabaseClient: any;
+
+if (supabaseUrl && supabaseAnonKey) {
+  // Real Supabase client
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-      getSession: () => Promise.resolve({ data: { session: null } }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      signUp: () => Promise.resolve({ data: null, error: new Error("Supabase not configured") }),
-      signInWithPassword: () => Promise.resolve({ data: null, error: new Error("Supabase not configured") }),
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+  });
+} else {
+  // Mock client for development
+  console.warn(
+    "Supabase credentials not configured. Using mock client for development.",
+  );
+  supabaseClient = {
+    auth: {
+      getSession: () =>
+        Promise.resolve({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({
+        data: { subscription: { unsubscribe: () => {} } },
+      }),
+      signUp: () =>
+        Promise.resolve({
+          data: { user: null },
+          error: new Error("Supabase not configured"),
+        }),
+      signInWithPassword: () =>
+        Promise.resolve({
+          data: { user: null },
+          error: new Error("Supabase not configured"),
+        }),
       signOut: () => Promise.resolve({ error: null }),
     },
     from: () => ({
-      select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: new Error("Supabase not configured") }) }) }),
-      insert: () => Promise.resolve({ error: new Error("Supabase not configured") }),
-      update: () => ({ eq: () => Promise.resolve({ error: new Error("Supabase not configured") }) }),
+      select: () => ({
+        eq: () => ({
+          single: () =>
+            Promise.resolve({
+              data: null,
+              error: new Error("Supabase not configured"),
+            }),
+        }),
+      }),
+      insert: () =>
+        Promise.resolve({
+          error: new Error("Supabase not configured"),
+        }),
+      update: () => ({
+        eq: () =>
+          Promise.resolve({
+            error: new Error("Supabase not configured"),
+          }),
+      }),
     }),
-  } as any;
-} else {
-  export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
-    },
-  },
-});
+  };
+}
+
+export const supabase = supabaseClient;
 
 // Database types for TypeScript
 export type Database = {
