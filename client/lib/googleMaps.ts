@@ -40,8 +40,8 @@ export const loadGoogleMapsAPI = (): Promise<typeof google> => {
     script.defer = true;
 
     script.onload = () => {
-      if (typeof google !== "undefined") {
-        resolve(google);
+      if (typeof window !== "undefined" && window.google) {
+        resolve(window.google);
       } else {
         reject(new Error("Google Maps API failed to load"));
       }
