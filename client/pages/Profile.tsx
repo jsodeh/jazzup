@@ -1,4 +1,13 @@
-import { ArrowLeft, Settings, Bell, Shield, HelpCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Settings,
+  Bell,
+  Shield,
+  HelpCircle,
+  CheckCircle,
+  Star,
+  AlertTriangle,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Profile() {
