@@ -290,6 +290,91 @@ export default function Index() {
     }
   };
 
+  // Helper function to get city name from coordinates
+  const getCityFromCoordinates = async (
+    lat: number,
+    lng: number,
+  ): Promise<string> => {
+    try {
+      // In a real app, this would use Google Maps Geocoding API
+      // For now, we'll use a simple mock based on coordinates
+      if (lat >= 37.2 && lat <= 37.5 && lng >= -122.0 && lng <= -121.7) {
+        return "San Jose";
+      } else if (lat >= 37.7 && lat <= 37.8 && lng >= -122.5 && lng <= -122.3) {
+        return "San Francisco";
+      } else if (lat >= 37.4 && lat <= 37.5 && lng >= -122.3 && lng <= -122.1) {
+        return "Palo Alto";
+      } else {
+        return "Your Area";
+      }
+    } catch (error) {
+      return "Your Area";
+    }
+  };
+
+  // Helper function to create welcome alert
+  const createWelcomeAlert = (
+    city: string,
+    lat: number,
+    lng: number,
+  ): Alert => {
+    return {
+      id: "welcome",
+      title: "Welcome to SafeAlert",
+      location: `${city}, CA`,
+      timeAgo: "Just now",
+      votes: 0,
+      lat,
+      lng,
+      description: `Here's where you'll get notified on everything happening in and around ${city}. SafeAlert keeps you informed about safety incidents, traffic issues, weather alerts, and community updates within 100km of your location. Your community is working together to keep everyone safe and informed.`,
+      type: "community",
+      userVote: null,
+      comments: [
+        {
+          id: "welcome-1",
+          user: "SAFEALERT",
+          text: `🎯 You'll receive alerts within 100km of ${city}`,
+          votes: 0,
+          avatar: "🛡️",
+          timeAgo: "Just now",
+          userVote: null,
+        },
+        {
+          id: "welcome-2",
+          user: "SAFEALERT",
+          text: "🔔 Enable notifications to get real-time alerts",
+          votes: 0,
+          avatar: "🛡️",
+          timeAgo: "Just now",
+          userVote: null,
+        },
+        {
+          id: "welcome-3",
+          user: "SAFEALERT",
+          text: "👥 Join the community to verify and report incidents",
+          votes: 0,
+          avatar: "🛡️",
+          timeAgo: "Just now",
+          userVote: null,
+        },
+      ],
+    };
+  };
+
+  // Helper function to load nearby alerts (mock for now)
+  const loadNearbyAlerts = async (
+    lat: number,
+    lng: number,
+  ): Promise<Alert[]> => {
+    // In a real app, this would fetch alerts from the backend within 100km
+    // For now, return mock alerts with adjusted coordinates near user
+    return mockAlerts.map((alert) => ({
+      ...alert,
+      lat: lat + (Math.random() - 0.5) * 0.1, // Random offset within ~10km
+      lng: lng + (Math.random() - 0.5) * 0.1,
+    }));
+  };
+
   return (
     <div className="h-screen bg-map-bg overflow-hidden relative">
       {/* Status Bar */}
