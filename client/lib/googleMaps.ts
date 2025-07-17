@@ -174,18 +174,19 @@ export const formatDistance = (distance: number): string => {
 export const getDirections = async (
   origin: MapPosition,
   destination: MapPosition,
-  travelMode: google.maps.TravelMode = google.maps.TravelMode.DRIVING,
+  travelMode?: google.maps.TravelMode,
 ): Promise<google.maps.DirectionsResult> => {
   try {
-    await loadGoogleMapsAPI();
+    const google = await loadGoogleMapsAPI();
     const directionsService = new google.maps.DirectionsService();
+    const mode = travelMode || google.maps.TravelMode.DRIVING;
 
     return new Promise((resolve, reject) => {
       directionsService.route(
         {
           origin,
           destination,
-          travelMode,
+          travelMode: mode,
           unitSystem: google.maps.UnitSystem.METRIC,
           avoidHighways: false,
           avoidTolls: false,
