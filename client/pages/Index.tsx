@@ -184,7 +184,14 @@ export default function Index() {
       </div>
 
       {/* Action Buttons */}
-      <div className="absolute bottom-32 right-6 flex flex-col gap-3 z-50">
+      <div
+        className={cn(
+          "absolute right-6 flex flex-col gap-3 z-50 transition-all duration-300",
+          selectedAlert && !isExpanded
+            ? "bottom-1/2 transform translate-y-1/2"
+            : "bottom-32",
+        )}
+      >
         <Link
           to="/directions"
           className="w-12 h-12 bg-card rounded-full flex items-center justify-center shadow-lg border border-border"
