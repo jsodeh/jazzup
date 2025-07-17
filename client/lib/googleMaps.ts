@@ -2,6 +2,12 @@
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+
 export interface MapPosition {
   lat: number;
   lng: number;
@@ -18,8 +24,8 @@ export interface MapMarker {
 // Load Google Maps JavaScript API
 export const loadGoogleMapsAPI = (): Promise<typeof google> => {
   return new Promise((resolve, reject) => {
-    if (typeof google !== "undefined") {
-      resolve(google);
+    if (typeof window !== "undefined" && window.google) {
+      resolve(window.google);
       return;
     }
 
