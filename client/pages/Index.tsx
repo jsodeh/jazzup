@@ -183,10 +183,18 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Location Button */}
-      <button className="absolute bottom-32 right-6 w-12 h-12 bg-alert rounded-full flex items-center justify-center shadow-lg">
-        <Target className="w-6 h-6 text-white" />
-      </button>
+      {/* Action Buttons */}
+      <div className="absolute bottom-32 right-6 flex flex-col gap-3">
+        <Link
+          to="/directions"
+          className="w-12 h-12 bg-card rounded-full flex items-center justify-center shadow-lg border border-border"
+        >
+          <MapPin className="w-6 h-6 text-foreground" />
+        </Link>
+        <button className="w-12 h-12 bg-alert rounded-full flex items-center justify-center shadow-lg">
+          <Target className="w-6 h-6 text-white" />
+        </button>
+      </div>
 
       {/* Bottom Sheet */}
       {selectedAlert && (
