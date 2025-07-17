@@ -459,20 +459,45 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Alert Markers */}
-      {alerts.map((alert, index) => (
-        <button
-          key={alert.id}
-          onClick={() => handleAlertClick(alert)}
-          className="absolute top-52 left-20 w-8 h-8 bg-alert rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+      {/* User Location Marker */}
+      {userLocation && (
+        <div
+          className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg z-20"
           style={{
-            left: `${20 + index * 40}%`,
-            top: `${52 - index * 10}%`,
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
           }}
         >
-          <MapPin className="w-5 h-5 text-white" />
-        </button>
-      ))}
+          <div className="absolute inset-0 bg-blue-500/30 rounded-full animate-ping"></div>
+        </div>
+      )}
+
+      {/* Alert Markers */}
+      {alerts.map((alert, index) => {
+        const isWelcome = alert.id === "welcome";
+        return (
+          <button
+            key={alert.id}
+            onClick={() => handleAlertClick(alert)}
+            className={cn(
+              "absolute w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform",
+              isWelcome ? "bg-green-500 border-2 border-white" : "bg-alert",
+            )}
+            style={{
+              left: isWelcome ? "50%" : `${20 + (index - 1) * 40}%`,
+              top: isWelcome ? "45%" : `${52 - (index - 1) * 10}%`,
+              transform: isWelcome ? "translate(-50%, -50%)" : "none",
+            }}
+          >
+            {isWelcome ? (
+              <span className="text-white text-lg">👋</span>
+            ) : (
+              <MapPin className="w-5 h-5 text-white" />
+            )}
+          </button>
+        );
+      })}
 
       {/* Action Buttons */}
       <div
