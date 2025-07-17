@@ -96,20 +96,80 @@ export default function Index() {
   }, []);
 
   const handleVote = (alertId: string, direction: "up" | "down") => {
+    if (!isAuthenticated) {
+      setAuthPromptTrigger("vote");
+      setShowAuthPrompt(true);
+      return;
+    }
+
     // Handle voting logic
+    setAlerts((prev) =>
+      prev.map((alert) =>
+        alert.id === alertId
+          ? {
+              ...alert,
+              votes: alert.votes + (direction === "up" ? 1 : -1),
+              userVote: direction,
+            }
+          : alert,
+      ),
+    );
     console.log(`Voting ${direction} on alert ${alertId}`);
   };
 
   const handleCommentVote = (commentId: string, direction: "up" | "down") => {
+    if (!isAuthenticated) {
+      setAuthPromptTrigger("vote");
+      setShowAuthPrompt(true);
+      return;
+    }
+
     // Handle comment voting logic
     console.log(`Voting ${direction} on comment ${commentId}`);
   };
 
   const submitComment = () => {
+    if (!isAuthenticated) {
+      setAuthPromptTrigger("comment");
+      setShowAuthPrompt(true);
+      return;
+    }
+
     if (comment.trim()) {
       // Add comment logic
       console.log("Adding comment:", comment);
       setComment("");
+    }
+  };
+
+  const handleAddAlert = () => {
+    if (!isAuthenticated) {
+      setAuthPromptTrigger("add_alert");
+      setShowAuthPrompt(true);
+      return;
+    }
+    // Navigate to add alert page
+  };
+
+  const handleProfileClick = () => {
+    if (!isAuthenticated) {
+      setAuthPromptTrigger("profile");
+      setShowAuthPrompt(true);
+      return;
+    }
+    // Navigate to profile
+  };
+
+  const handleAlertClick = (alert: Alert) => {
+    setSelectedAlert(alert);
+    setShowEventDetails(true);
+  };
+
+  const handleLocationRequest = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      // Load alerts within 100km of user location
+      console.log("Location granted, loading nearby alerts");
     }
   };
 
