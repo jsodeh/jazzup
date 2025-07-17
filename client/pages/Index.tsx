@@ -271,7 +271,7 @@ export default function Index() {
       {/* Action Buttons */}
       <div
         className={cn(
-          "absolute right-6 flex flex-col gap-3 z-50 transition-all duration-300",
+          "absolute right-6 flex flex-col gap-3 z-40 transition-all duration-300",
           selectedAlert && !isExpanded
             ? "bottom-1/2 transform translate-y-1/2"
             : "bottom-32",
@@ -279,14 +279,40 @@ export default function Index() {
       >
         <Link
           to="/directions"
-          className="w-12 h-12 bg-card rounded-full flex items-center justify-center shadow-lg border border-border"
+          className="w-12 h-12 bg-card rounded-full flex items-center justify-center shadow-lg border border-border hover:scale-105 transition-transform"
         >
           <MapPin className="w-6 h-6 text-foreground" />
         </Link>
-        <button className="w-12 h-12 bg-alert rounded-full flex items-center justify-center shadow-lg">
+        <button
+          onClick={handleLocationRequest}
+          className="w-12 h-12 bg-alert rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+        >
           <Target className="w-6 h-6 text-white" />
         </button>
       </div>
+
+      {/* Location Permission Banner */}
+      {hasPermission === null && (
+        <div className="absolute top-20 left-4 right-4 bg-card rounded-2xl p-4 shadow-lg border border-border z-30">
+          <div className="flex items-center gap-3">
+            <MapPin className="w-5 h-5 text-alert" />
+            <div className="flex-1">
+              <p className="font-medium text-foreground mb-1">
+                See alerts near you
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Allow location access to view safety alerts within 100km
+              </p>
+            </div>
+            <button
+              onClick={handleLocationRequest}
+              className="bg-alert text-alert-foreground px-4 py-2 rounded-xl font-medium text-sm hover:bg-alert/90 transition-colors"
+            >
+              Allow
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Sheet */}
       {selectedAlert && (
