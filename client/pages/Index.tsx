@@ -153,7 +153,7 @@ export default function Index() {
         if (granted) {
           // Get user's current location
           navigator.geolocation.getCurrentPosition(
-                        async (position) => {
+            async (position) => {
               try {
                 const { latitude, longitude } = position.coords;
                 console.log("Location obtained:", { latitude, longitude });
@@ -169,14 +169,25 @@ export default function Index() {
                 setSelectedAlert(welcome);
 
                 // Load alerts around user's location
-                const nearbyAlerts = await loadNearbyAlerts(latitude, longitude);
+                const nearbyAlerts = await loadNearbyAlerts(
+                  latitude,
+                  longitude,
+                );
                 setAlerts([welcome, ...nearbyAlerts]);
               } catch (cityError) {
                 console.error("Error processing location:", cityError);
                 // Still use the coordinates even if city detection fails
                 const { latitude, longitude } = position.coords;
-                setUserLocation({ lat: latitude, lng: longitude, city: "Your Area" });
-                const welcome = createWelcomeAlert("Your Area", latitude, longitude);
+                setUserLocation({
+                  lat: latitude,
+                  lng: longitude,
+                  city: "Your Area",
+                });
+                const welcome = createWelcomeAlert(
+                  "Your Area",
+                  latitude,
+                  longitude,
+                );
                 setWelcomeAlert(welcome);
                 setSelectedAlert(welcome);
                 setAlerts([welcome, ...mockAlerts]);
@@ -187,7 +198,7 @@ export default function Index() {
               let errorMessage = "Unknown location error";
               let fallbackCity = "San Jose";
 
-              if (error && typeof error === 'object') {
+              if (error && typeof error === "object") {
                 switch (error.code) {
                   case 1: // PERMISSION_DENIED
                     errorMessage = "Location access denied by user";
@@ -225,12 +236,11 @@ export default function Index() {
               setSelectedAlert(welcome);
               setAlerts([welcome, ...mockAlerts]);
             },
-                    ),
             {
               enableHighAccuracy: true,
               timeout: 15000, // 15 seconds
               maximumAge: 300000, // 5 minutes
-            }
+            },
           );
         } else {
           // Use default San Jose location
