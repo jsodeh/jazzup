@@ -1,21 +1,36 @@
-# SafeAlert Setup Guide
+# Jazzup Setup Guide 🚀
+
+**Complete installation and configuration guide for the Jazzup community safety platform**
 
 ## Prerequisites
 
-- Node.js 18+ installed
-- A Google Cloud Platform account
-- A Supabase account
-- Basic knowledge of environment variables
+- **Node.js 18+** installed on your system
+- **Google Cloud Platform** account with billing enabled
+- **Supabase** account (free tier available)
+- Basic knowledge of environment variables and command line
 
-## Installation Steps
+## 🛠️ Installation Steps
 
-### 1. Install Dependencies
+### 1. Clone the Repository
 
 ```bash
-npm install @supabase/supabase-js @googlemaps/js-api-loader
+git clone https://github.com/your-username/jazzup.git
+cd jazzup
 ```
 
-### 2. Environment Configuration
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+This will install all required dependencies including:
+
+- `@supabase/supabase-js` - Database client
+- `@googlemaps/js-api-loader` - Maps integration
+- `@types/google.maps` - TypeScript definitions
+
+### 3. Environment Configuration
 
 1. Copy the environment template:
 
@@ -34,8 +49,11 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 
 # App Configuration
-VITE_APP_NAME=SafeAlert
+VITE_APP_NAME=Jazzup
 VITE_APP_VERSION=1.0.0
+
+# Optional: Push Notification Configuration
+VITE_VAPID_PUBLIC_KEY=your_vapid_public_key_here
 ```
 
 ### 3. Google Maps API Setup
