@@ -314,137 +314,30 @@ export default function Index() {
         </div>
       )}
 
-      {/* Bottom Sheet */}
-      {selectedAlert && (
-        <div
-          className={cn(
-            "absolute bottom-0 left-0 right-0 bg-card rounded-t-3xl transition-all duration-300",
-            isExpanded ? "h-5/6" : "h-auto",
-          )}
-        >
-          {/* Handle */}
-          <div className="flex justify-center pt-3 pb-2">
-            <div className="w-10 h-1 bg-muted rounded-full"></div>
-          </div>
+      {/* Event Details Modal */}
+      <EventDetailsModal
+        isOpen={showEventDetails}
+        onClose={() => setShowEventDetails(false)}
+        alert={selectedAlert}
+        onVote={handleVote}
+        onCommentVote={handleCommentVote}
+        onAddComment={(alertId, comment) => {
+          // Handle adding comment
+          console.log("Adding comment to alert:", alertId, comment);
+        }}
+        onAuthRequired={() => {
+          setAuthPromptTrigger("comment");
+          setShowAuthPrompt(true);
+        }}
+        isAuthenticated={isAuthenticated}
+      />
 
-          {/* Alert Card */}
-          <div className="px-4 pb-4">
-            <div className="bg-secondary rounded-2xl p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="text-xs text-muted-foreground mb-1">
-                    {selectedAlert.timeAgo}
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    {selectedAlert.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedAlert.location}
-                  </p>
-                </div>
-                <div className="flex flex-col items-center gap-1 ml-4">
-                  <button
-                    onClick={() => handleVote(selectedAlert.id, "up")}
-                    className="p-1"
-                  >
-                    <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                  </button>
-                  <span className="text-xl font-bold text-foreground">
-                    {selectedAlert.votes}
-                  </span>
-                  <button
-                    onClick={() => handleVote(selectedAlert.id, "down")}
-                    className="p-1"
-                  >
-                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Expand/Collapse Toggle */}
-            {!isExpanded && (
-              <button
-                onClick={() => setIsExpanded(true)}
-                className="w-full flex justify-center py-2"
-              >
-                <ChevronUp className="w-5 h-5 text-muted-foreground" />
-              </button>
-            )}
-          </div>
-
-          {/* Expanded Content */}
-          {isExpanded && (
-            <div className="px-4 pb-24 flex-1 overflow-y-auto">
-              {/* Close Button */}
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="absolute top-4 right-4 p-2"
-              >
-                <X className="w-5 h-5 text-muted-foreground" />
-              </button>
-
-              {/* Comments */}
-              <div className="space-y-3 mb-4">
-                {selectedAlert.comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="bg-secondary rounded-2xl p-4"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-lg">
-                        {comment.avatar}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-xs font-semibold text-foreground mb-1">
-                          {comment.user}
-                        </div>
-                        <p className="text-sm text-foreground mb-2">
-                          {comment.text}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <button
-                          onClick={() => handleCommentVote(comment.id, "up")}
-                          className="p-1"
-                        >
-                          <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                        <span className="text-sm font-semibold text-foreground">
-                          {comment.votes}
-                        </span>
-                        <button
-                          onClick={() => handleCommentVote(comment.id, "down")}
-                          className="p-1"
-                        >
-                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Comment Input */}
-              <div className="relative">
-                <input
-                  type="text"
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Comment"
-                  className="w-full bg-secondary rounded-2xl px-4 py-3 pr-12 text-foreground placeholder:text-muted-foreground border-2 border-alert focus:outline-none focus:ring-2 focus:ring-alert focus:border-transparent"
-                />
-                <button
-                  onClick={submitComment}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1"
-                >
-                  <Send className="w-5 h-5 text-alert" />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Authentication Prompt Modal */}
+      <AuthPromptModal
+        isOpen={showAuthPrompt}
+        onClose={() => setShowAuthPrompt(false)}
+        trigger={authPromptTrigger}
+      />
 
       {/* Bottom Navigation */}
       <div className="absolute bottom-0 left-0 right-0 h-20 bg-card border-t border-border">
