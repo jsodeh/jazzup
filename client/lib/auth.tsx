@@ -231,18 +231,47 @@ export const useLocationPermission = () => {
 
   const requestPermission = (): Promise<boolean> => {
     return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        console.warn("Geolocation is not supported by this browser");
+        setHasPermission(false);
+        resolve(false);
+        return;
+      }
+
       navigator.geolocation.getCurrentPosition(
         () => {
+          console.log("Location permission granted");
           setHasPermission(true);
           resolve(true);
         },
-        () => {
+        (error) => {
+          // Detailed error logging
+          let errorMessage = "Unknown geolocation error";
+
+          switch (error.code) {
+            case 1: // PERMISSION_DENIED
+              errorMessage = "User denied location permission";
+              break;
+            case 2: // POSITION_UNAVAILABLE
+              errorMessage = "Location information unavailable";
+              break;
+            case 3: // TIMEOUT
+              errorMessage = "Location request timed out";
+              break;
+          }
+
+          console.warn("Location permission error:", {
+            code: error.code,
+            message: error.message,
+            details: errorMessage,
+          });
+
           setHasPermission(false);
           resolve(false);
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 15000, // Increased timeout
           maximumAge: 300000,
         },
       );
