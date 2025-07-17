@@ -213,9 +213,15 @@ export const useLocationPermission = () => {
               setHasPermission(true);
               resolve(true);
             },
-            () => {
+            (error) => {
+              console.warn("Permission check failed:", error);
               setHasPermission(false);
               resolve(false);
+            },
+            {
+              enableHighAccuracy: false, // Less demanding for permission check
+              timeout: 5000,
+              maximumAge: 600000, // 10 minutes
             },
           );
         });
