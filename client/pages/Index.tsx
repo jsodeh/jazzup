@@ -543,7 +543,13 @@ export default function Index() {
       {/* Event Details Modal */}
       <EventDetailsModal
         isOpen={showEventDetails}
-        onClose={() => setShowEventDetails(false)}
+        onClose={() => {
+          setShowEventDetails(false);
+          // If closing welcome alert, clear selection
+          if (selectedAlert?.id === "welcome") {
+            setSelectedAlert(null);
+          }
+        }}
         alert={selectedAlert}
         onVote={handleVote}
         onCommentVote={handleCommentVote}
