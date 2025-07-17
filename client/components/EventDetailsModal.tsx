@@ -284,55 +284,57 @@ export default function EventDetailsModal({
           </div>
         </div>
 
-        {/* Comment Input */}
-        <div className="p-4 border-t border-border">
-          <div className="flex gap-3">
-            <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder={
-                  isAuthenticated
-                    ? "Share what you know about this incident..."
-                    : "Sign in to share updates"
-                }
-                disabled={!isAuthenticated}
-                className="w-full bg-secondary rounded-2xl px-4 py-3 pr-12 text-foreground placeholder:text-muted-foreground border-0 focus:outline-none focus:ring-2 focus:ring-alert disabled:opacity-50"
-                onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
-              />
-              <button
-                onClick={handleAddComment}
-                disabled={!comment.trim() || !isAuthenticated}
-                className={cn(
-                  "absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full transition-colors",
-                  comment.trim() && isAuthenticated
-                    ? "text-alert hover:bg-alert/10"
-                    : "text-muted-foreground",
-                )}
-              >
-                <Send className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          {!isAuthenticated && (
-            <div className="mt-3 p-3 bg-muted/30 rounded-xl">
-              <p className="text-sm text-muted-foreground text-center">
+        {/* Comment Input - Hide for welcome alert */}
+        {alert.id !== "welcome" && (
+          <div className="p-4 border-t border-border">
+            <div className="flex gap-3">
+              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder={
+                    isAuthenticated
+                      ? "Share what you know about this incident..."
+                      : "Sign in to share updates"
+                  }
+                  disabled={!isAuthenticated}
+                  className="w-full bg-secondary rounded-2xl px-4 py-3 pr-12 text-foreground placeholder:text-muted-foreground border-0 focus:outline-none focus:ring-2 focus:ring-alert disabled:opacity-50"
+                  onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
+                />
                 <button
-                  onClick={onAuthRequired}
-                  className="text-alert font-medium hover:underline"
+                  onClick={handleAddComment}
+                  disabled={!comment.trim() || !isAuthenticated}
+                  className={cn(
+                    "absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full transition-colors",
+                    comment.trim() && isAuthenticated
+                      ? "text-alert hover:bg-alert/10"
+                      : "text-muted-foreground",
+                  )}
                 >
-                  Sign in
-                </button>{" "}
-                to verify incidents and share community updates
-              </p>
+                  <Send className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-          )}
-        </div>
+
+            {!isAuthenticated && (
+              <div className="mt-3 p-3 bg-muted/30 rounded-xl">
+                <p className="text-sm text-muted-foreground text-center">
+                  <button
+                    onClick={onAuthRequired}
+                    className="text-alert font-medium hover:underline"
+                  >
+                    Sign in
+                  </button>{" "}
+                  to verify incidents and share community updates
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
