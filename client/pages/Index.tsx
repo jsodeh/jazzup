@@ -75,11 +75,25 @@ const mockAlerts: Alert[] = [
 ];
 
 export default function Index() {
-  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(
-    mockAlerts[0],
-  );
+  const { isAuthenticated } = useAuth();
+  const { hasPermission, requestPermission } = useLocationPermission();
+
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [comment, setComment] = useState("");
+  const [showEventDetails, setShowEventDetails] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [authPromptTrigger, setAuthPromptTrigger] = useState<
+    "vote" | "comment" | "profile" | "add_alert"
+  >("profile");
+  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
+
+  // Request location permission on first load
+  useEffect(() => {
+    if (hasPermission === null) {
+      // Don't auto-request on first load, let user see the app first
+    }
+  }, []);
 
   const handleVote = (alertId: string, direction: "up" | "down") => {
     // Handle voting logic
