@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronUp,
@@ -12,6 +12,9 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import EventDetailsModal from "@/components/EventDetailsModal";
+import AuthPromptModal from "@/components/AuthPromptModal";
+import { useAuth, useLocationPermission } from "@/lib/auth";
 
 interface Alert {
   id: string;
