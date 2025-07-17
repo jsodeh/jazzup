@@ -207,7 +207,9 @@ export const getDirections = async (
 
 // Check if Google Maps API is available
 export const isGoogleMapsAvailable = (): boolean => {
-  return Boolean(GOOGLE_MAPS_API_KEY && typeof google !== "undefined");
+  return Boolean(
+    GOOGLE_MAPS_API_KEY && typeof window !== "undefined" && window.google,
+  );
 };
 
 // Default San Jose coordinates (fallback)
