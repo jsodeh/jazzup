@@ -426,12 +426,12 @@ export default function Index() {
           <button className="p-3">
             <Home className="w-6 h-6 text-foreground" />
           </button>
-          <Link to="/add-alert" className="p-3">
+          <button onClick={handleAddAlert} className="p-3">
             <Plus className="w-6 h-6 text-muted-foreground" />
-          </Link>
-          <Link to="/profile" className="p-3">
+          </button>
+          <button onClick={handleProfileClick} className="p-3">
             <User className="w-6 h-6 text-muted-foreground" />
-          </Link>
+          </button>
         </div>
         {/* Home Indicator */}
         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-white rounded-full"></div>
