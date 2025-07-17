@@ -135,14 +135,82 @@ export default function Index() {
   const [authPromptTrigger, setAuthPromptTrigger] = useState<
     "vote" | "comment" | "profile" | "add_alert"
   >("profile");
-  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+    city: string;
+  } | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [welcomeAlert, setWelcomeAlert] = useState<Alert | null>(null);
 
-  // Request location permission on first load
+  // Request location permission immediately on app load
   useEffect(() => {
-    if (hasPermission === null) {
-      // Don't auto-request on first load, let user see the app first
-    }
-  }, []);
+    const requestLocationOnLoad = async () => {
+      setIsLoadingLocation(true);
+      try {
+        const granted = await requestPermission();
+        if (granted) {
+          // Get user's current location
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords;
+
+              // Try to get city name from coordinates (mock for now)
+              const city = await getCityFromCoordinates(latitude, longitude);
+
+              setUserLocation({ lat: latitude, lng: longitude, city });
+
+              // Create welcome alert
+              const welcome = createWelcomeAlert(city, latitude, longitude);
+              setWelcomeAlert(welcome);
+              setSelectedAlert(welcome);
+
+              // Load alerts around user's location
+              const nearbyAlerts = await loadNearbyAlerts(latitude, longitude);
+              setAlerts([welcome, ...nearbyAlerts]);
+            },
+            (error) => {
+              console.error("Location error:", error);
+              // Fallback to San Jose if location fails
+              setUserLocation({
+                lat: 37.3387,
+                lng: -121.8853,
+                city: "San Jose",
+              });
+              const welcome = createWelcomeAlert(
+                "San Jose",
+                37.3387,
+                -121.8853,
+              );
+              setWelcomeAlert(welcome);
+              setSelectedAlert(welcome);
+              setAlerts([welcome, ...mockAlerts]);
+            },
+          );
+        } else {
+          // Use default San Jose location
+          setUserLocation({ lat: 37.3387, lng: -121.8853, city: "San Jose" });
+          const welcome = createWelcomeAlert("San Jose", 37.3387, -121.8853);
+          setWelcomeAlert(welcome);
+          setSelectedAlert(welcome);
+          setAlerts([welcome, ...mockAlerts]);
+        }
+      } catch (error) {
+        console.error("Permission error:", error);
+        // Fallback to San Jose
+        setUserLocation({ lat: 37.3387, lng: -121.8853, city: "San Jose" });
+        const welcome = createWelcomeAlert("San Jose", 37.3387, -121.8853);
+        setWelcomeAlert(welcome);
+        setSelectedAlert(welcome);
+        setAlerts([welcome, ...mockAlerts]);
+      } finally {
+        setIsLoadingLocation(false);
+      }
+    };
+
+    requestLocationOnLoad();
+  }, [requestPermission]);
 
   const handleVote = (alertId: string, direction: "up" | "down") => {
     if (!isAuthenticated) {
