@@ -154,32 +154,81 @@ export default function Index() {
           // Get user's current location
           navigator.geolocation.getCurrentPosition(
             async (position) => {
-              const { latitude, longitude } = position.coords;
+              try {
+                const { latitude, longitude } = position.coords;
+                console.log("Location obtained:", { latitude, longitude });
 
-              // Try to get city name from coordinates (mock for now)
-              const city = await getCityFromCoordinates(latitude, longitude);
+                // Try to get city name from coordinates (mock for now)
+                const city = await getCityFromCoordinates(latitude, longitude);
 
-              setUserLocation({ lat: latitude, lng: longitude, city });
+                setUserLocation({ lat: latitude, lng: longitude, city });
 
-              // Create welcome alert
-              const welcome = createWelcomeAlert(city, latitude, longitude);
-              setWelcomeAlert(welcome);
-              setSelectedAlert(welcome);
+                // Create welcome alert
+                const welcome = createWelcomeAlert(city, latitude, longitude);
+                setWelcomeAlert(welcome);
+                setSelectedAlert(welcome);
 
-              // Load alerts around user's location
-              const nearbyAlerts = await loadNearbyAlerts(latitude, longitude);
-              setAlerts([welcome, ...nearbyAlerts]);
+                // Load alerts around user's location
+                const nearbyAlerts = await loadNearbyAlerts(
+                  latitude,
+                  longitude,
+                );
+                setAlerts([welcome, ...nearbyAlerts]);
+              } catch (cityError) {
+                console.error("Error processing location:", cityError);
+                // Still use the coordinates even if city detection fails
+                const { latitude, longitude } = position.coords;
+                setUserLocation({
+                  lat: latitude,
+                  lng: longitude,
+                  city: "Your Area",
+                });
+                const welcome = createWelcomeAlert(
+                  "Your Area",
+                  latitude,
+                  longitude,
+                );
+                setWelcomeAlert(welcome);
+                setSelectedAlert(welcome);
+                setAlerts([welcome, ...mockAlerts]);
+              }
             },
             (error) => {
-              console.error("Location error:", error);
+              // Detailed error handling for GeolocationPositionError
+              let errorMessage = "Unknown location error";
+              let fallbackCity = "San Jose";
+
+              if (error && typeof error === "object") {
+                switch (error.code) {
+                  case 1: // PERMISSION_DENIED
+                    errorMessage = "Location access denied by user";
+                    break;
+                  case 2: // POSITION_UNAVAILABLE
+                    errorMessage = "Location information unavailable";
+                    break;
+                  case 3: // TIMEOUT
+                    errorMessage = "Location request timed out";
+                    break;
+                  default:
+                    errorMessage = `Location error: ${error.message || "Unknown error"}`;
+                }
+              }
+
+              console.warn("Geolocation error details:", {
+                code: error?.code || "unknown",
+                message: error?.message || "no message",
+                details: errorMessage,
+                fullError: error,
+              });
+
               // Fallback to San Jose if location fails
               setUserLocation({
                 lat: 37.3387,
                 lng: -121.8853,
-                city: "San Jose",
+                city: fallbackCity,
               });
               const welcome = createWelcomeAlert(
-                "San Jose",
+                fallbackCity,
                 37.3387,
                 -121.8853,
               );
