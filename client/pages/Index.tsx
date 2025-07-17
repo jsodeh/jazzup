@@ -423,25 +423,29 @@ export default function Index() {
           <rect width="100%" height="100%" fill="url(#grid)" />
         </svg>
 
-        {/* Street Labels */}
-        <div className="absolute top-20 left-8 text-map-label font-medium text-lg tracking-wide">
-          JAPANTOWN
-        </div>
-        <div className="absolute top-32 left-12 text-map-label font-medium text-sm">
-          N 1st St
-        </div>
-        <div className="absolute top-40 right-20 text-map-label font-medium text-sm">
-          E Santa Clara St
-        </div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-map-label font-bold text-2xl">
-          San Jose
-        </div>
-        <div className="absolute bottom-1/3 left-1/3 text-map-label font-medium text-sm">
-          DOWNTOWN
-        </div>
-        <div className="absolute bottom-1/3 left-1/3 mt-4 text-map-label font-medium text-sm">
-          SAN JOSE
-        </div>
+        {/* Dynamic Street Labels based on user location */}
+        {userLocation ? (
+          <>
+            <div className="absolute top-20 left-8 text-map-label font-medium text-lg tracking-wide">
+              {userLocation.city.toUpperCase()}
+            </div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-map-label font-bold text-2xl">
+              {userLocation.city}
+            </div>
+            <div className="absolute bottom-1/3 left-1/3 text-map-label font-medium text-sm">
+              YOUR AREA
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="absolute top-20 left-8 text-map-label font-medium text-lg tracking-wide">
+              LOCATING...
+            </div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-map-label font-bold text-2xl">
+              Finding Location
+            </div>
+          </>
+        )}
 
         {/* Highway Markers */}
         <div className="absolute top-16 left-4 bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold">
