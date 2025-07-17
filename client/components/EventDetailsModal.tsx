@@ -173,42 +173,44 @@ export default function EventDetailsModal({
             </div>
           </div>
 
-          {/* Voting Section */}
-          <div className="flex items-center justify-between bg-secondary rounded-2xl p-4">
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-muted-foreground" />
-              <span className="font-medium text-foreground">
-                Community Verification
-              </span>
+          {/* Voting Section - Hide for welcome alert */}
+          {alert.id !== "welcome" && (
+            <div className="flex items-center justify-between bg-secondary rounded-2xl p-4">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium text-foreground">
+                  Community Verification
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleVote("up")}
+                  className={cn(
+                    "p-2 rounded-full transition-colors",
+                    alert.userVote === "up"
+                      ? "bg-green-500 text-white"
+                      : "bg-muted hover:bg-muted/80",
+                  )}
+                >
+                  <ChevronUp className="w-5 h-5" />
+                </button>
+                <span className="text-lg font-bold text-foreground px-2">
+                  {alert.votes}
+                </span>
+                <button
+                  onClick={() => handleVote("down")}
+                  className={cn(
+                    "p-2 rounded-full transition-colors",
+                    alert.userVote === "down"
+                      ? "bg-red-500 text-white"
+                      : "bg-muted hover:bg-muted/80",
+                  )}
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleVote("up")}
-                className={cn(
-                  "p-2 rounded-full transition-colors",
-                  alert.userVote === "up"
-                    ? "bg-green-500 text-white"
-                    : "bg-muted hover:bg-muted/80",
-                )}
-              >
-                <ChevronUp className="w-5 h-5" />
-              </button>
-              <span className="text-lg font-bold text-foreground px-2">
-                {alert.votes}
-              </span>
-              <button
-                onClick={() => handleVote("down")}
-                className={cn(
-                  "p-2 rounded-full transition-colors",
-                  alert.userVote === "down"
-                    ? "bg-red-500 text-white"
-                    : "bg-muted hover:bg-muted/80",
-                )}
-              >
-                <ChevronDown className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Comments Section */}
