@@ -24,6 +24,9 @@ interface Alert {
   votes: number;
   lat: number;
   lng: number;
+  description: string;
+  type: string;
+  userVote?: "up" | "down" | null;
   comments: Comment[];
 }
 
@@ -34,6 +37,7 @@ interface Comment {
   votes: number;
   avatar: string;
   timeAgo: string;
+  userVote?: "up" | "down" | null;
 }
 
 const mockAlerts: Alert[] = [
@@ -97,7 +101,7 @@ const mockAlerts: Alert[] = [
         user: "SARAH",
         text: "Traffic backed up for miles. Use alternative routes.",
         votes: 15,
-        avatar: "����",
+        avatar: "👩",
         timeAgo: "45min ago",
         userVote: null,
       },
