@@ -77,7 +77,7 @@ const mockAlerts: Alert[] = [
         user: "HENRY",
         text: "This intersection has had security issues before. Glad everyone is safe.",
         votes: 12,
-        avatar: "👨",
+        avatar: "��",
         timeAgo: "12min ago",
         userVote: null,
       },
@@ -221,6 +221,9 @@ export default function Index() {
                 details: errorMessage,
                 fullError: error,
               });
+
+              // Set user-friendly error message
+              setLocationError(errorMessage);
 
               // Fallback to San Jose if location fails
               setUserLocation({
