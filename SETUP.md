@@ -276,56 +276,82 @@ create trigger handle_updated_at before update on public.comments
   for each row execute function public.handle_updated_at();
 ```
 
-4. Copy your Supabase URL and anon key from Settings > API
-5. Add them to your `.env` file
+#### 5.3 Get API Credentials
 
-### 5. Run the Application
+1. Go to **Settings** → **API** in your Supabase dashboard
+2. Copy your **Project URL** and **Anon (public) key**
+3. Add them to your `.env` file
+
+#### 5.4 Configure Real-time (Optional)
+
+1. Go to **Database** → **Replication**
+2. Enable real-time for the tables you want live updates on
+3. This allows instant alert notifications across all users
+
+### 6. Start Development Server
 
 ```bash
 npm run dev
 ```
 
-## Location Permission Flow
+The app will be available at `http://localhost:8080`
 
-The app requests location permissions in this order:
+## 🎯 User Experience Flow
 
-1. **Setup Flow** - During onboarding (recommended)
-2. **Feature-Based** - When user tries location features
-3. **Just-in-Time** - When creating alerts or getting directions
+### Location Permission Strategy
 
-Users can always skip and use the app with limited functionality.
+Jazzup requests location permission **immediately** when users land on the app:
 
-## Features Enabled
+1. **Immediate Request** - Location permission requested on page load
+2. **Welcome Card** - Personalized notification for user's area
+3. **Graceful Fallback** - App works without location (uses default area)
+4. **100km Radius** - Shows all alerts within 100km of user's location
 
-With proper setup, you'll have:
+### Authentication Flow
 
-### ✅ Authentication & Profiles
+- **Browse Freely** - No barriers to viewing alerts and comments
+- **Progressive Enhancement** - Features unlock with account creation
+- **Contextual Prompts** - Auth required only for voting, commenting, reporting
+- **Clear Value Proposition** - Each prompt explains specific benefits
 
-- User registration and login
-- Profile management with verification
-- Trust scoring system
-- Emergency contact setup
+## 🚀 Features Enabled
 
-### ✅ Real-time Alerts
+With proper setup, you'll have access to:
 
-- Community-driven incident reporting
-- Voting and verification system
-- Geographic filtering
-- Push notifications
+### ✅ **Real-Time Safety Network**
 
-### ✅ Navigation & Directions
+- **Live incident mapping** with community verification
+- **Instant notifications** for alerts in your area
+- **Geographic filtering** within 100km radius
+- **Multi-category alerts** (Safety, Traffic, Weather, Community, Crime, Emergency)
 
-- Google Maps integration
-- Turn-by-turn directions
-- Multiple transport modes
-- Real-time location tracking
+### ✅ **Community Engagement**
 
-### ✅ Safety Features
+- **Crowd-sourced validation** through voting system
+- **Real-time commenting** with community updates
+- **Trust scoring** for reliable contributors
+- **User verification** badges and profiles
 
-- Emergency alert system
-- Location sharing
-- Community verification
-- Real-time notifications
+### ✅ **Advanced Navigation**
+
+- **Multi-modal directions** (driving, transit, walking)
+- **Real-time route optimization** avoiding incidents
+- **Public transportation** integration
+- **Emergency routing** during critical situations
+
+### ✅ **Smart Authentication**
+
+- **Progressive user onboarding** without barriers
+- **Contextual sign-up flows** explaining benefits
+- **Privacy-focused** data handling
+- **Emergency features** for authenticated users
+
+### ✅ **Mobile-Optimized Experience**
+
+- **Progressive Web App** capabilities
+- **Responsive design** for all screen sizes
+- **Touch-friendly interactions** and gestures
+- **Offline functionality** for critical features
 
 ## Testing
 
