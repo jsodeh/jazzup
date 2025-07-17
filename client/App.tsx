@@ -10,6 +10,9 @@ import Index from "./pages/Index";
 import Directions from "./pages/Directions";
 import Profile from "./pages/Profile";
 import AddAlert from "./pages/AddAlert";
+import Onboarding from "./pages/Onboarding";
+import Setup from "./pages/Setup";
+import Verification from "./pages/Verification";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
