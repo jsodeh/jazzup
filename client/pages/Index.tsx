@@ -184,7 +184,7 @@ export default function Index() {
       </div>
 
       {/* Action Buttons */}
-      <div className="absolute bottom-32 right-6 flex flex-col gap-3">
+      <div className="absolute bottom-32 right-6 flex flex-col gap-3 z-50">
         <Link
           to="/directions"
           className="w-12 h-12 bg-card rounded-full flex items-center justify-center shadow-lg border border-border"
