@@ -90,11 +90,22 @@ Navigate to the API Library and enable these APIs:
 - Set up billing alerts to avoid unexpected charges
 - Consider quota limits for production deployment
 
-### 4. Supabase Database Setup
+### 5. Supabase Database Setup
 
-1. Create a new project at [Supabase](https://supabase.com)
-2. Go to SQL Editor in your Supabase dashboard
-3. Run this SQL to create the required tables:
+#### 5.1 Create Supabase Project
+
+1. Go to [Supabase](https://supabase.com) and sign up/log in
+2. Click "New Project"
+3. Choose your organization
+4. Set project name: "Jazzup"
+5. Create a strong database password
+6. Select a region close to your users
+7. Wait for the project to be created (1-2 minutes)
+
+#### 5.2 Configure Database Schema
+
+1. Go to the **SQL Editor** in your Supabase dashboard
+2. Create a new query and run this SQL to create the required tables:
 
 ```sql
 -- Enable Row Level Security
