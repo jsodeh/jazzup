@@ -159,6 +159,9 @@ export default function Index() {
                 const { latitude, longitude } = position.coords;
                 console.log("Location obtained:", { latitude, longitude });
 
+                // Clear any previous location error
+                setLocationError(null);
+
                 // Try to get city name from coordinates (mock for now)
                 const city = await getCityFromCoordinates(latitude, longitude);
 
