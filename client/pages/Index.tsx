@@ -115,7 +115,7 @@ const getCityFromCoordinates = async (
 export default function Index() {
   const { isAuthenticated, user } = useAuth();
   const { requestPermission } = useLocationPermission();
-    const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
@@ -130,7 +130,7 @@ export default function Index() {
   } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [welcomeAlert, setWelcomeAlert] = useState<Alert | null>(null);
-      const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showDirectionsFirst, setShowDirectionsFirst] = useState(true);
 
@@ -158,12 +158,12 @@ export default function Index() {
               setUserLocation({ lat: latitude, lng: longitude, city });
 
               // Create welcome notification
-                            const welcomeDb = createWelcomeAlert(city, latitude, longitude);
+              const welcomeDb = createWelcomeAlert(city, latitude, longitude);
               const welcome = transformAlert(welcomeDb, [], []);
               setWelcomeAlert(welcome);
               setSelectedAlert(welcome);
 
-                            // Load alerts around user's location
+              // Load alerts around user's location
               const nearbyAlerts = await getNearbyAlerts(latitude, longitude);
 
               // Get user votes if authenticated
@@ -172,8 +172,12 @@ export default function Index() {
                 userVotes = await getUserVotes(user.id);
               }
 
-                                          const transformedAlerts = nearbyAlerts.map((alert) =>
-                transformAlert(alert, userVotes.alertVotes, userVotes.commentVotes),
+              const transformedAlerts = nearbyAlerts.map((alert) =>
+                transformAlert(
+                  alert,
+                  userVotes.alertVotes,
+                  userVotes.commentVotes,
+                ),
               );
 
               setAlerts([welcome, ...transformedAlerts]);
@@ -228,14 +232,14 @@ export default function Index() {
     handleLocationFallback();
   };
 
-    const handleLocationFallback = async () => {
+  const handleLocationFallback = async () => {
     const fallbackCity = "San Jose";
     setUserLocation({
       lat: 37.3387,
       lng: -121.8853,
       city: fallbackCity,
     });
-        const welcomeDb = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
+    const welcomeDb = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
     const welcome = transformAlert(welcomeDb, [], []);
     setWelcomeAlert(welcome);
     setSelectedAlert(welcome);
@@ -259,7 +263,7 @@ export default function Index() {
     }
   };
 
-    const recenterMap = () => {
+  const recenterMap = () => {
     if (userLocation) {
       // In a real map implementation, this would recenter the map to user's location
       console.log("Recentering map to:", userLocation);
@@ -267,7 +271,7 @@ export default function Index() {
     }
   };
 
-    const handleGetDirections = (destination: string) => {
+  const handleGetDirections = (destination: string) => {
     // Navigate to directions page with destination pre-filled
     window.location.href = `/directions?destination=${encodeURIComponent(destination)}`;
   };
@@ -276,12 +280,16 @@ export default function Index() {
     setShowDirectionsFirst(false);
   };
 
+  const toggleToDirections = () => {
+    setShowDirectionsFirst(true);
+  };
+
   const handleCardClick = (alert: Alert) => {
     setSelectedAlert(alert);
     setShowEventModal(true);
   };
 
-    const handleVote = async (alertId: string, voteType: "up" | "down") => {
+  const handleVote = async (alertId: string, voteType: "up" | "down") => {
     if (!isAuthenticated || !user) {
       setAuthPromptType("vote");
       setShowAuthPrompt(true);
@@ -317,7 +325,10 @@ export default function Index() {
     }
   };
 
-    const handleCommentVote = async (commentId: string, voteType: "up" | "down") => {
+  const handleCommentVote = async (
+    commentId: string,
+    voteType: "up" | "down",
+  ) => {
     if (!isAuthenticated || !user) {
       setAuthPromptType("vote");
       setShowAuthPrompt(true);
@@ -359,7 +370,7 @@ export default function Index() {
     }
   };
 
-    const handleAddComment = async (commentText: string) => {
+  const handleAddComment = async (commentText: string) => {
     if (!isAuthenticated || !user) {
       setAuthPromptType("comment");
       setShowAuthPrompt(true);
@@ -428,10 +439,10 @@ export default function Index() {
   }
 
   return (
-            <div className="min-h-screen bg-gray-50 relative">
+    <div className="min-h-screen bg-gray-50 relative">
       {/* Map Section */}
       <div className="h-screen w-full bg-gradient-to-br from-green-100 to-blue-100 relative overflow-hidden">
-                {/* Map UI Controls */}
+        {/* Map UI Controls */}
         <div className="absolute top-4 left-4 z-20">
           <button className="bg-white rounded-full p-3 shadow-lg">
             <Home className="h-6 w-6 text-gray-700" />
@@ -452,6 +463,7 @@ export default function Index() {
             </button>
           </div>
         )}
+
         <div className="absolute top-4 right-4 z-20">
           <button
             className="bg-white rounded-full p-3 shadow-lg"
@@ -501,7 +513,7 @@ export default function Index() {
                 alert.type === "emergency" && "bg-red-500",
                 alert.type === "crime" && "bg-orange-500",
                 alert.type === "traffic" && "bg-yellow-500",
-                alert.type === "info" && "bg-blue-500",
+                alert.type === "community" && "bg-blue-500",
                 selectedAlert?.id === alert.id && "ring-4 ring-blue-300",
               )}
               style={{
@@ -533,7 +545,7 @@ export default function Index() {
             selectedAlert ? "bottom-80" : "bottom-28",
           )}
         >
-                  <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-4">
             <ActionButtonTooltip tooltip="Get Directions" autoShow delay={3000}>
               <Link
                 to="/directions"
@@ -568,7 +580,7 @@ export default function Index() {
           </div>
         </div>
 
-                        {/* Bottom Sheet - Directions Card or Alerts */}
+        {/* Bottom Sheet - Directions Card or Alerts */}
         <div className="absolute bottom-0 left-0 right-0 z-10">
           {showDirectionsFirst ? (
             <DirectionsCard
@@ -577,126 +589,136 @@ export default function Index() {
             />
           ) : (
             <div className="bg-white rounded-t-3xl shadow-2xl">
-          <div className="flex justify-center py-3">
-            <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
-          </div>
-
-          <div className="px-6 pb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Recent Alerts
-                </h2>
-                <p className="text-sm text-gray-500">
-                  {userLocation?.city || "San Jose"} • {alerts.length} active
-                </p>
+              <div className="flex justify-center py-3">
+                <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
               </div>
-              <div className="flex items-center space-x-2">
-                {totalPages > 1 && (
-                  <>
-                    <button
-                      onClick={prevPage}
-                      className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                    >
-                      <ChevronUp className="h-4 w-4 text-gray-600" />
-                    </button>
-                    <span className="text-xs text-gray-500">
-                      {currentPage + 1}/{totalPages}
-                    </span>
-                    <button
-                      onClick={nextPage}
-                      className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                    >
-                      <ChevronDown className="h-4 w-4 text-gray-600" />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
 
-            <div className="space-y-3">
-              {visibleAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={cn(
-                    "p-4 rounded-xl border cursor-pointer transition-all duration-200",
-                    selectedAlert?.id === alert.id
-                      ? "bg-blue-50 border-blue-200 shadow-md"
-                      : "bg-white border-gray-200 hover:bg-gray-50",
-                    alert.id === "welcome" &&
-                      "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
-                  )}
-                  onClick={() => handleCardClick(alert)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h3 className="font-semibold text-gray-900">
-                          {alert.title}
-                        </h3>
-                        <span
-                          className={cn(
-                            "px-2 py-0.5 text-xs font-medium rounded-full",
-                            alert.type === "emergency" &&
-                              "bg-red-100 text-red-800",
-                            alert.type === "crime" &&
-                              "bg-orange-100 text-orange-800",
-                            alert.type === "traffic" &&
-                              "bg-yellow-100 text-yellow-800",
-                            alert.type === "info" &&
-                              "bg-blue-100 text-blue-800",
-                          )}
+              <div className="px-6 pb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Recent Alerts
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {userLocation?.city || "San Jose"} • {alerts.length}{" "}
+                      active
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={toggleToDirections}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    >
+                      Get Directions
+                    </button>
+                    {totalPages > 1 && (
+                      <>
+                        <button
+                          onClick={prevPage}
+                          className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                         >
-                          {alert.type}
+                          <ChevronUp className="h-4 w-4 text-gray-600" />
+                        </button>
+                        <span className="text-xs text-gray-500">
+                          {currentPage + 1}/{totalPages}
                         </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {alert.location}
-                      </p>
-                      <p className="text-xs text-gray-500">{alert.timeAgo}</p>
-                    </div>
-                    <div className="flex items-center space-x-3 ml-4">
-                      {alert.id !== "welcome" && (
-                        <>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleVote(alert.id, "up");
-                            }}
-                            className={cn(
-                              "p-1 rounded transition-colors",
-                              alert.userVote === "up"
-                                ? "bg-green-100 text-green-600"
-                                : "text-gray-400 hover:text-green-600 hover:bg-green-50",
-                            )}
-                          >
-                            <ChevronUp className="h-4 w-4" />
-                          </button>
-                          <span className="text-sm font-medium text-gray-900">
-                            {alert.votes}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleVote(alert.id, "down");
-                            }}
-                            className={cn(
-                              "p-1 rounded transition-colors",
-                              alert.userVote === "down"
-                                ? "bg-red-100 text-red-600"
-                                : "text-gray-400 hover:text-red-600 hover:bg-red-50",
-                            )}
-                          >
-                            <ChevronDown className="h-4 w-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
+                        <button
+                          onClick={nextPage}
+                          className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                        >
+                          <ChevronDown className="h-4 w-4 text-gray-600" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-              ))}
-                                    </div>
-          </div>
+
+                <div className="space-y-3">
+                  {visibleAlerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className={cn(
+                        "p-4 rounded-xl border cursor-pointer transition-all duration-200",
+                        selectedAlert?.id === alert.id
+                          ? "bg-blue-50 border-blue-200 shadow-md"
+                          : "bg-white border-gray-200 hover:bg-gray-50",
+                        alert.id === "welcome" &&
+                          "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
+                      )}
+                      onClick={() => handleCardClick(alert)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h3 className="font-semibold text-gray-900">
+                              {alert.title}
+                            </h3>
+                            <span
+                              className={cn(
+                                "px-2 py-0.5 text-xs font-medium rounded-full",
+                                alert.type === "emergency" &&
+                                  "bg-red-100 text-red-800",
+                                alert.type === "crime" &&
+                                  "bg-orange-100 text-orange-800",
+                                alert.type === "traffic" &&
+                                  "bg-yellow-100 text-yellow-800",
+                                alert.type === "community" &&
+                                  "bg-blue-100 text-blue-800",
+                              )}
+                            >
+                              {alert.type}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {alert.location}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {alert.timeAgo}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-3 ml-4">
+                          {alert.id !== "welcome" && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVote(alert.id, "up");
+                                }}
+                                className={cn(
+                                  "p-1 rounded transition-colors",
+                                  alert.userVote === "up"
+                                    ? "bg-green-100 text-green-600"
+                                    : "text-gray-400 hover:text-green-600 hover:bg-green-50",
+                                )}
+                              >
+                                <ChevronUp className="h-4 w-4" />
+                              </button>
+                              <span className="text-sm font-medium text-gray-900">
+                                {alert.votes}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVote(alert.id, "down");
+                                }}
+                                className={cn(
+                                  "p-1 rounded transition-colors",
+                                  alert.userVote === "down"
+                                    ? "bg-red-100 text-red-600"
+                                    : "text-gray-400 hover:text-red-600 hover:bg-red-50",
+                                )}
+                              >
+                                <ChevronDown className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
