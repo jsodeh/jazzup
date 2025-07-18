@@ -21,9 +21,13 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@googlemaps/js-api-loader": "^1.16.10",
     "@supabase/supabase-js": "^2.51.0",
     "@types/google.maps": "^3.58.1",
+=======
+    "@supabase/supabase-js": "^2.52.0",
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
     "express": "^4.18.2",
     "zod": "^3.23.8"
   },

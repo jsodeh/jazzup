@@ -213,6 +213,7 @@ export const useLocationPermission = () => {
               setHasPermission(true);
               resolve(true);
             },
+<<<<<<< HEAD
             (error) => {
               console.warn("Permission check failed:", error);
               setHasPermission(false);
@@ -223,6 +224,12 @@ export const useLocationPermission = () => {
               timeout: 5000,
               maximumAge: 600000, // 10 minutes
             },
+=======
+            () => {
+              setHasPermission(false);
+              resolve(false);
+            },
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
           );
         });
       }
@@ -237,6 +244,7 @@ export const useLocationPermission = () => {
 
   const requestPermission = (): Promise<boolean> => {
     return new Promise((resolve) => {
+<<<<<<< HEAD
       if (!navigator.geolocation) {
         console.warn("Geolocation is not supported by this browser");
         setHasPermission(false);
@@ -272,12 +280,24 @@ export const useLocationPermission = () => {
             details: errorMessage,
           });
 
+=======
+      navigator.geolocation.getCurrentPosition(
+        () => {
+          setHasPermission(true);
+          resolve(true);
+        },
+        () => {
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
           setHasPermission(false);
           resolve(false);
         },
         {
           enableHighAccuracy: true,
+<<<<<<< HEAD
           timeout: 15000, // Increased timeout
+=======
+          timeout: 10000,
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
           maximumAge: 300000,
         },
       );

@@ -143,7 +143,10 @@ export default function Index() {
   } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [welcomeAlert, setWelcomeAlert] = useState<Alert | null>(null);
+<<<<<<< HEAD
   const [locationError, setLocationError] = useState<string | null>(null);
+=======
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
 
   // Request location permission immediately on app load
   useEffect(() => {
@@ -155,6 +158,7 @@ export default function Index() {
           // Get user's current location
           navigator.geolocation.getCurrentPosition(
             async (position) => {
+<<<<<<< HEAD
               try {
                 const { latitude, longitude } = position.coords;
                 console.log("Location obtained:", { latitude, longitude });
@@ -228,14 +232,41 @@ export default function Index() {
               // Set user-friendly error message
               setLocationError(errorMessage);
 
+=======
+              const { latitude, longitude } = position.coords;
+
+              // Try to get city name from coordinates (mock for now)
+              const city = await getCityFromCoordinates(latitude, longitude);
+
+              setUserLocation({ lat: latitude, lng: longitude, city });
+
+              // Create welcome alert
+              const welcome = createWelcomeAlert(city, latitude, longitude);
+              setWelcomeAlert(welcome);
+              setSelectedAlert(welcome);
+
+              // Load alerts around user's location
+              const nearbyAlerts = await loadNearbyAlerts(latitude, longitude);
+              setAlerts([welcome, ...nearbyAlerts]);
+            },
+            (error) => {
+              console.error("Location error:", error);
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
               // Fallback to San Jose if location fails
               setUserLocation({
                 lat: 37.3387,
                 lng: -121.8853,
+<<<<<<< HEAD
                 city: fallbackCity,
               });
               const welcome = createWelcomeAlert(
                 fallbackCity,
+=======
+                city: "San Jose",
+              });
+              const welcome = createWelcomeAlert(
+                "San Jose",
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
                 37.3387,
                 -121.8853,
               );
@@ -243,11 +274,14 @@ export default function Index() {
               setSelectedAlert(welcome);
               setAlerts([welcome, ...mockAlerts]);
             },
+<<<<<<< HEAD
             {
               enableHighAccuracy: true,
               timeout: 15000, // 15 seconds
               maximumAge: 300000, // 5 minutes
             },
+=======
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
           );
         } else {
           // Use default San Jose location
@@ -441,6 +475,7 @@ export default function Index() {
       {/* Status Bar */}
       <div className="absolute top-0 left-0 right-0 h-11 bg-transparent flex items-center justify-between px-4 z-50 text-white text-sm font-medium">
         <span>12:22</span>
+<<<<<<< HEAD
         <div className="flex items-center gap-1">
           <div className="flex gap-1">
             <div className="w-1 h-3 bg-white rounded-full"></div>
@@ -457,10 +492,76 @@ export default function Index() {
           </div>
           <div className="ml-1 w-6 h-3 border border-white rounded-sm">
             <div className="w-4 h-1.5 bg-white rounded-sm m-0.5"></div>
+=======
+        <div className="flex items-center gap-3">
+          {/* Directions Icon */}
+          <Link to="/directions" className="hover:scale-110 transition-transform" title="Directions">
+            <MapPin className="w-6 h-6 text-white" />
+          </Link>
+          {/* Existing status indicators */}
+          <div className="flex items-center gap-1">
+            <div className="flex gap-1">
+              <div className="w-1 h-3 bg-white rounded-full"></div>
+              <div className="w-1 h-3 bg-white rounded-full"></div>
+              <div className="w-1 h-3 bg-white rounded-full"></div>
+              <div className="w-1 h-3 bg-white/50 rounded-full"></div>
+            </div>
+            <div className="ml-2">
+              <svg width="18" height="12" fill="white">
+                <rect width="4" height="12" rx="1" />
+                <rect x="6" width="4" height="8" rx="1" />
+                <rect x="12" width="4" height="4" rx="1" />
+              </svg>
+            </div>
+            <div className="ml-1 w-6 h-3 border border-white rounded-sm">
+              <div className="w-4 h-1.5 bg-white rounded-sm m-0.5"></div>
+            </div>
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
           </div>
         </div>
       </div>
 
+<<<<<<< HEAD
+=======
+      {/* Onboarding fallback if no location */}
+      {!userLocation && !isLoadingLocation && (
+        <div className="absolute top-20 left-4 right-4 bg-card rounded-2xl p-4 shadow-lg border border-border z-30">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 flex items-center justify-center bg-blue-100 rounded-full text-blue-600 text-2xl">👋</div>
+            <div className="flex-1">
+              <p className="font-bold text-foreground mb-1">Welcome to SafeAlert!</p>
+              <p className="text-sm text-muted-foreground mb-2">
+                Enable location to see real alerts near you. Or explore the app and see how notifications and comments work!
+              </p>
+              <button
+                onClick={handleLocationRequest}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
+              >
+                Allow Location Access
+              </button>
+            </div>
+          </div>
+          <div className="mt-4">
+            <p className="font-medium text-foreground mb-2">How SafeAlert works:</p>
+            <div className="space-y-2">
+              <div className="bg-muted rounded-lg p-3 flex gap-3 items-start">
+                <span className="text-xl">🎯</span>
+                <span className="text-sm text-muted-foreground">You'll receive alerts within 100km of your area</span>
+              </div>
+              <div className="bg-muted rounded-lg p-3 flex gap-3 items-start">
+                <span className="text-xl">🔔</span>
+                <span className="text-sm text-muted-foreground">Enable notifications to get real-time alerts</span>
+              </div>
+              <div className="bg-muted rounded-lg p-3 flex gap-3 items-start">
+                <span className="text-xl">👥</span>
+                <span className="text-sm text-muted-foreground">Join the community to verify and report incidents</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
       {/* Map Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900">
         {/* Street Grid Pattern */}
@@ -569,9 +670,17 @@ export default function Index() {
             : "bottom-32",
         )}
       >
+<<<<<<< HEAD
         <Link
           to="/directions"
           className="w-12 h-12 bg-card rounded-full flex items-center justify-center shadow-lg border border-border hover:scale-105 transition-transform"
+=======
+        {/* Directions FAB: Link to Directions page */}
+        <Link
+          to="/directions"
+          className="w-12 h-12 bg-card rounded-full flex items-center justify-center shadow-lg border border-border hover:scale-105 transition-transform"
+          title="Directions"
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
         >
           <MapPin className="w-6 h-6 text-foreground" />
         </Link>
@@ -584,7 +693,11 @@ export default function Index() {
         </button>
       </div>
 
+<<<<<<< HEAD
       {/* Loading/Error State */}
+=======
+      {/* Loading State */}
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
       {isLoadingLocation && (
         <div className="absolute top-20 left-4 right-4 bg-card rounded-2xl p-4 shadow-lg border border-border z-30">
           <div className="flex items-center gap-3">
@@ -601,6 +714,7 @@ export default function Index() {
         </div>
       )}
 
+<<<<<<< HEAD
       {/* Location Error State */}
       {locationError && !isLoadingLocation && (
         <div className="absolute top-20 left-4 right-4 bg-card rounded-2xl p-4 shadow-lg border border-border z-30">
@@ -635,6 +749,8 @@ export default function Index() {
         </div>
       )}
 
+=======
+>>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
       {/* Event Details Modal */}
       <EventDetailsModal
         isOpen={showEventDetails}
