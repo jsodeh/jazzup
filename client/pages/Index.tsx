@@ -296,13 +296,51 @@ export default function Index() {
         setWelcomeAlert(welcome);
         setSelectedAlert(welcome);
         setAlerts([welcome, ...mockAlerts]);
-      } finally {
+            } finally {
         setIsLoadingLocation(false);
       }
-    };
+    } catch (error) {
+      console.error("Error requesting location permission:", error);
+      // Fall back to default location on any error
+      const fallbackCity = "San Jose";
+      setUserLocation({
+        lat: 37.3387,
+        lng: -121.8853,
+        city: fallbackCity,
+      });
+      const welcome = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
+      setWelcomeAlert(welcome);
+      setSelectedAlert(welcome);
+      setAlerts([welcome, ...mockAlerts]);
+      setIsLoadingLocation(false);
+    }
+  };
 
-        requestLocationOnLoad();
-  }, []); // Empty dependency array - only run once on mount
+  const handleLocationDeny = () => {
+    setShowLocationModal(false);
+    setIsLoadingLocation(true);
+
+    // Use default location
+    const fallbackCity = "San Jose";
+    setUserLocation({
+      lat: 37.3387,
+      lng: -121.8853,
+      city: fallbackCity,
+    });
+    const welcome = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
+    setWelcomeAlert(welcome);
+    setSelectedAlert(welcome);
+    setAlerts([welcome, ...mockAlerts]);
+    setIsLoadingLocation(false);
+  };
+
+  const recenterMap = () => {
+    if (userLocation) {
+      // In a real map implementation, this would recenter the map to user's location
+      console.log("Recentering map to:", userLocation);
+      // For now, just show a visual feedback
+    }
+  };
 
   const handleCardClick = (alert: Alert) => {
     setSelectedAlert(alert);
