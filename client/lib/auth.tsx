@@ -252,9 +252,8 @@ export const useLocationPermission = () => {
     });
   };
 
-  useEffect(() => {
-    checkPermission();
-  }, []);
+  // Note: Don't auto-check permission on mount to avoid conflicts
+  // with component-level location requests
 
   return {
     hasPermission,
