@@ -17,137 +17,79 @@ import AuthPromptModal from "@/components/AuthPromptModal";
 import LocationPermissionModal from "@/components/LocationPermissionModal";
 import ActionButtonTooltip from "@/components/ActionButtonTooltip";
 import { useAuth, useLocationPermission } from "@/lib/auth";
+import {
+  getNearbyAlerts,
+  voteOnAlert,
+  voteOnComment,
+  addComment,
+  getUserVotes,
+  createWelcomeAlert,
+  formatTimeAgo,
+  type Alert,
+  type Comment,
+} from "@/lib/alertsService";
+import { getAddressFromCoordinates } from "@/lib/googleMaps";
 
-interface Alert {
-  id: string;
-  title: string;
-  location: string;
-  timeAgo: string;
-  votes: number;
-  lat: number;
-  lng: number;
-  description: string;
-  type: string;
-  userVote?: "up" | "down" | null;
-  comments: Comment[];
-}
+// Transform Supabase alert to display format
+const transformAlert = (
+  alert: Alert,
+  userVotes: any[],
+  commentVotes: any[],
+): any => {
+  const userVote = userVotes.find((v) => v.alert_id === alert.id)?.vote_type;
+  const transformedComments = alert.comments?.map((comment) => {
+    const commentUserVote = commentVotes.find(
+      (v) => v.comment_id === comment.id,
+    )?.vote_type;
+    return {
+      id: comment.id,
+      user: comment.user_profile?.full_name || "Anonymous",
+      text: comment.content,
+      votes: comment.votes,
+      avatar: comment.user_profile?.avatar_url || "/avatars/default.jpg",
+      timeAgo: formatTimeAgo(comment.created_at),
+      userVote: commentUserVote || null,
+    };
+  });
 
-interface Comment {
-  id: string;
-  user: string;
-  text: string;
-  votes: number;
-  avatar: string;
-  timeAgo: string;
-  userVote?: "up" | "down" | null;
-}
+  return {
+    id: alert.id,
+    title: alert.title,
+    location: alert.address,
+    timeAgo: formatTimeAgo(alert.created_at),
+    votes: alert.votes,
+    lat: alert.latitude,
+    lng: alert.longitude,
+    description: alert.description,
+    type: alert.type,
+    userVote: userVote || null,
+    comments: transformedComments || [],
+  };
+};
 
-const mockAlerts: Alert[] = [
-  {
-    id: "1",
-    title: "Gun Shots Fired",
-    location: "1st 2nd St, San Jose",
-    timeAgo: "30min away · 10 min ago",
-    votes: 84,
-    lat: 37.3387,
-    lng: -121.8853,
-    description:
-      "Multiple gun shots heard in the area around 2nd street. Police sirens can be heard approaching. Residents advised to stay indoors and avoid the area until further notice. Multiple witnesses have confirmed hearing 5-6 shots fired in rapid succession.",
-    type: "emergency",
-    comments: [
-      {
-        id: "1",
-        user: "Sarah M",
-        text: "I heard them too, very scary",
-        votes: 12,
-        avatar: "/avatars/sarah.jpg",
-        timeAgo: "8 min ago",
-      },
-      {
-        id: "2",
-        user: "Mike D",
-        text: "Police are on scene now",
-        votes: 8,
-        avatar: "/avatars/mike.jpg",
-        timeAgo: "5 min ago",
-      },
-    ],
-  },
-  {
-    id: "2",
-    title: "Car Break-in",
-    location: "Main St Parking Lot",
-    timeAgo: "1.2mi away · 25 min ago",
-    votes: 23,
-    lat: 37.3356,
-    lng: -121.8814,
-    description:
-      "White sedan with smashed window in the Main Street parking lot. Glass scattered on the ground. No one was hurt but valuable items were stolen from the vehicle.",
-    type: "crime",
-    comments: [
-      {
-        id: "3",
-        user: "John K",
-        text: "Same thing happened to me last week",
-        votes: 5,
-        avatar: "/avatars/john.jpg",
-        timeAgo: "20 min ago",
-      },
-    ],
-  },
-  {
-    id: "3",
-    title: "Road Construction",
-    location: "Highway 101",
-    timeAgo: "2.1mi away · 1 hr ago",
-    votes: 156,
-    lat: 37.3318,
-    lng: -121.8795,
-    description:
-      "Major road construction blocking two lanes on Highway 101. Expect significant delays during rush hour. Alternative routes recommended via Stevens Creek Blvd.",
-    type: "traffic",
-    comments: [],
-  },
-];
-
-// Mock function to get city from coordinates
+// Get city from coordinates using Google Maps or fallback
 const getCityFromCoordinates = async (
   lat: number,
   lng: number,
 ): Promise<string> => {
-  // This would normally use a geocoding service
-  // For now, return a mock city based on general San Jose area
-  if (lat > 37.3 && lat < 37.4 && lng > -121.9 && lng < -121.8) {
-    return "San Jose";
+  try {
+    const address = await getAddressFromCoordinates({ lat, lng });
+    // Extract city from address
+    const parts = address.split(",");
+    return parts[1]?.trim() || "Unknown City";
+  } catch (error) {
+    // Fallback for San Jose area
+    if (lat > 37.3 && lat < 37.4 && lng > -121.9 && lng < -121.8) {
+      return "San Jose";
+    }
+    return "Unknown City";
   }
-  return "Unknown City";
 };
-
-// Mock function to load nearby alerts
-const loadNearbyAlerts = async (lat: number, lng: number): Promise<Alert[]> => {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return mockAlerts;
-};
-
-// Create welcome alert for user's location
-const createWelcomeAlert = (city: string, lat: number, lng: number): Alert => ({
-  id: "welcome",
-  title: `Welcome to ${city}!`,
-  location: city,
-  timeAgo: "Just now",
-  votes: 0,
-  lat,
-  lng,
-  description: `You're now viewing community safety alerts for ${city}. Stay informed about incidents, traffic, and important updates in your area.`,
-  type: "info",
-  comments: [],
-});
 
 export default function Index() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { requestPermission } = useLocationPermission();
-  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
+  const [alerts, setAlerts] = useState<any[]>([]);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
@@ -194,8 +136,23 @@ export default function Index() {
               setSelectedAlert(welcome);
 
               // Load alerts around user's location
-              const nearbyAlerts = await loadNearbyAlerts(latitude, longitude);
-              setAlerts([welcome, ...nearbyAlerts]);
+              const nearbyAlerts = await getNearbyAlerts(latitude, longitude);
+
+              // Get user votes if authenticated
+              let userVotes = { alertVotes: [], commentVotes: [] };
+              if (user) {
+                userVotes = await getUserVotes(user.id);
+              }
+
+              const transformedAlerts = nearbyAlerts.map((alert) =>
+                transformAlert(
+                  alert,
+                  userVotes.alertVotes,
+                  userVotes.commentVotes,
+                ),
+              );
+
+              setAlerts([welcome, ...transformedAlerts]);
 
               console.log(
                 `Welcome to ${city}! Found ${nearbyAlerts.length} nearby alerts.`,
@@ -247,7 +204,7 @@ export default function Index() {
     handleLocationFallback();
   };
 
-  const handleLocationFallback = () => {
+  const handleLocationFallback = async () => {
     const fallbackCity = "San Jose";
     setUserLocation({
       lat: 37.3387,
@@ -257,7 +214,24 @@ export default function Index() {
     const welcome = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
     setWelcomeAlert(welcome);
     setSelectedAlert(welcome);
-    setAlerts([welcome, ...mockAlerts]);
+
+    // Load real alerts for fallback location
+    try {
+      const nearbyAlerts = await getNearbyAlerts(37.3387, -121.8853);
+      let userVotes = { alertVotes: [], commentVotes: [] };
+      if (user) {
+        userVotes = await getUserVotes(user.id);
+      }
+
+      const transformedAlerts = nearbyAlerts.map((alert) =>
+        transformAlert(alert, userVotes.alertVotes, userVotes.commentVotes),
+      );
+
+      setAlerts([welcome, ...transformedAlerts]);
+    } catch (error) {
+      console.error("Error loading fallback alerts:", error);
+      setAlerts([welcome]);
+    }
   };
 
   const recenterMap = () => {
@@ -273,94 +247,128 @@ export default function Index() {
     setShowEventModal(true);
   };
 
-  const handleVote = (alertId: string, voteType: "up" | "down") => {
-    if (!isAuthenticated) {
+  const handleVote = async (alertId: string, voteType: "up" | "down") => {
+    if (!isAuthenticated || !user) {
       setAuthPromptType("vote");
       setShowAuthPrompt(true);
       return;
     }
 
-    setAlerts(
-      alerts.map((alert) =>
-        alert.id === alertId
-          ? {
-              ...alert,
-              votes:
-                alert.userVote === voteType
-                  ? alert.votes - (voteType === "up" ? 1 : -1)
-                  : alert.userVote
-                    ? alert.votes + (voteType === "up" ? 2 : -2)
-                    : alert.votes + (voteType === "up" ? 1 : -1),
-              userVote: alert.userVote === voteType ? null : voteType,
-            }
-          : alert,
-      ),
-    );
+    // Skip voting on welcome alert
+    if (alertId === "welcome") return;
+
+    try {
+      const success = await voteOnAlert(alertId, user.id, voteType);
+      if (success) {
+        // Update local state optimistically
+        setAlerts(
+          alerts.map((alert) =>
+            alert.id === alertId
+              ? {
+                  ...alert,
+                  votes:
+                    alert.userVote === voteType
+                      ? alert.votes - (voteType === "up" ? 1 : -1)
+                      : alert.userVote
+                        ? alert.votes + (voteType === "up" ? 2 : -2)
+                        : alert.votes + (voteType === "up" ? 1 : -1),
+                  userVote: alert.userVote === voteType ? null : voteType,
+                }
+              : alert,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error("Error voting on alert:", error);
+    }
   };
 
-  const handleCommentVote = (commentId: string, voteType: "up" | "down") => {
-    if (!isAuthenticated) {
+  const handleCommentVote = async (
+    commentId: string,
+    voteType: "up" | "down",
+  ) => {
+    if (!isAuthenticated || !user) {
       setAuthPromptType("vote");
       setShowAuthPrompt(true);
       return;
     }
 
     if (selectedAlert) {
-      const updatedAlert = {
-        ...selectedAlert,
-        comments: selectedAlert.comments.map((comment) =>
-          comment.id === commentId
-            ? {
-                ...comment,
-                votes:
-                  comment.userVote === voteType
-                    ? comment.votes - (voteType === "up" ? 1 : -1)
-                    : comment.userVote
-                      ? comment.votes + (voteType === "up" ? 2 : -2)
-                      : comment.votes + (voteType === "up" ? 1 : -1),
-                userVote: comment.userVote === voteType ? null : voteType,
-              }
-            : comment,
-        ),
-      };
-      setSelectedAlert(updatedAlert);
-      setAlerts(
-        alerts.map((alert) =>
-          alert.id === selectedAlert.id ? updatedAlert : alert,
-        ),
-      );
+      try {
+        const success = await voteOnComment(commentId, user.id, voteType);
+        if (success) {
+          // Update local state optimistically
+          const updatedAlert = {
+            ...selectedAlert,
+            comments: selectedAlert.comments.map((comment) =>
+              comment.id === commentId
+                ? {
+                    ...comment,
+                    votes:
+                      comment.userVote === voteType
+                        ? comment.votes - (voteType === "up" ? 1 : -1)
+                        : comment.userVote
+                          ? comment.votes + (voteType === "up" ? 2 : -2)
+                          : comment.votes + (voteType === "up" ? 1 : -1),
+                    userVote: comment.userVote === voteType ? null : voteType,
+                  }
+                : comment,
+            ),
+          };
+          setSelectedAlert(updatedAlert);
+          setAlerts(
+            alerts.map((alert) =>
+              alert.id === selectedAlert.id ? updatedAlert : alert,
+            ),
+          );
+        }
+      } catch (error) {
+        console.error("Error voting on comment:", error);
+      }
     }
   };
 
-  const handleAddComment = (commentText: string) => {
-    if (!isAuthenticated) {
+  const handleAddComment = async (commentText: string) => {
+    if (!isAuthenticated || !user) {
       setAuthPromptType("comment");
       setShowAuthPrompt(true);
       return;
     }
 
-    if (selectedAlert) {
-      const newComment: Comment = {
-        id: Date.now().toString(),
-        user: "You",
-        text: commentText,
-        votes: 1,
-        avatar: "/avatars/you.jpg",
-        timeAgo: "Just now",
-        userVote: "up",
-      };
+    if (selectedAlert && selectedAlert.id !== "welcome") {
+      try {
+        const comment = await addComment({
+          alert_id: selectedAlert.id,
+          user_id: user.id,
+          content: commentText,
+        });
 
-      const updatedAlert = {
-        ...selectedAlert,
-        comments: [newComment, ...selectedAlert.comments],
-      };
+        if (comment) {
+          const newComment = {
+            id: comment.id,
+            user: comment.user_profile?.full_name || "You",
+            text: comment.content,
+            votes: comment.votes,
+            avatar: comment.user_profile?.avatar_url || "/avatars/default.jpg",
+            timeAgo: "Just now",
+            userVote: null,
+          };
 
-      setSelectedAlert(updatedAlert);
-      setAlerts(
-        alerts.map((alert) =>
-          alert.id === selectedAlert.id ? updatedAlert : alert,
-        ),
-      );
+          const updatedAlert = {
+            ...selectedAlert,
+            comments: [newComment, ...selectedAlert.comments],
+          };
+
+          setSelectedAlert(updatedAlert);
+          setAlerts(
+            alerts.map((alert) =>
+              alert.id === selectedAlert.id ? updatedAlert : alert,
+            ),
+          );
+        }
+      } catch (error) {
+        console.error("Error adding comment:", error);
+      }
     }
   };
 
