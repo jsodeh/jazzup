@@ -59,9 +59,9 @@ export default function AuthPromptModal({
       default:
         return {
           icon: <User className="w-12 h-12 text-purple-500" />,
-          title: "Join SafeAlert Community",
+          title: "Join Jazzup Community",
           description:
-            "Create your profile to access all SafeAlert features and help build a safer community for everyone.",
+            "Create your profile to access all Jazzup features and get the best directions and safety updates for your area.",
           benefits: [
             "Verify and comment on alerts",
             "Create safety reports",
