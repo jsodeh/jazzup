@@ -50,92 +50,109 @@ const mockAlerts: Alert[] = [
     lat: 37.3387,
     lng: -121.8853,
     description:
-      "Multiple gunshots heard in the downtown area. Police are responding to the scene. Residents advised to stay indoors until further notice.",
-    type: "safety",
-    userVote: null,
+      "Multiple gun shots heard in the area around 2nd street. Police sirens can be heard approaching. Residents advised to stay indoors and avoid the area until further notice. Multiple witnesses have confirmed hearing 5-6 shots fired in rapid succession.",
+    type: "emergency",
     comments: [
       {
         id: "1",
-        user: "ALFRED",
-        text: "I heard it too, sounded like 3-4 shots. Police arrived within 5 minutes.",
-        votes: 7,
-        avatar: "👨‍💼",
-        timeAgo: "5min ago",
-        userVote: null,
+        user: "Sarah M",
+        text: "I heard them too, very scary",
+        votes: 12,
+        avatar: "/avatars/sarah.jpg",
+        timeAgo: "8 min ago",
       },
       {
         id: "2",
-        user: "ROBERT",
-        text: "Police said no injuries reported. Area is now secure.",
-        votes: 61,
-        avatar: "👮‍♂️",
-        timeAgo: "8min ago",
-        userVote: null,
-      },
-      {
-        id: "3",
-        user: "HENRY",
-        text: "This intersection has had security issues before. Glad everyone is safe.",
-        votes: 12,
-        avatar: "👨",
-        timeAgo: "12min ago",
-        userVote: null,
+        user: "Mike D",
+        text: "Police are on scene now",
+        votes: 8,
+        avatar: "/avatars/mike.jpg",
+        timeAgo: "5 min ago",
       },
     ],
   },
   {
     id: "2",
-    title: "Road Closure - Construction",
-    location: "Highway 101 & Stevens Creek",
-    timeAgo: "1 hour ago",
+    title: "Car Break-in",
+    location: "Main St Parking Lot",
+    timeAgo: "1.2mi away · 25 min ago",
     votes: 23,
-    lat: 37.3688,
-    lng: -121.9026,
+    lat: 37.3356,
+    lng: -121.8814,
     description:
-      "Emergency road work blocking two lanes on Highway 101. Expect significant delays during rush hour.",
-    type: "traffic",
-    userVote: null,
+      "White sedan with smashed window in the Main Street parking lot. Glass scattered on the ground. No one was hurt but valuable items were stolen from the vehicle.",
+    type: "crime",
     comments: [
       {
-        id: "4",
-        user: "SARAH",
-        text: "Traffic backed up for miles. Use alternative routes.",
-        votes: 15,
-        avatar: "👩",
-        timeAgo: "45min ago",
-        userVote: null,
+        id: "3",
+        user: "John K",
+        text: "Same thing happened to me last week",
+        votes: 5,
+        avatar: "/avatars/john.jpg",
+        timeAgo: "20 min ago",
       },
     ],
   },
   {
     id: "3",
-    title: "Severe Weather Alert",
-    location: "Downtown San Jose",
-    timeAgo: "2 hours ago",
+    title: "Road Construction",
+    location: "Highway 101",
+    timeAgo: "2.1mi away · 1 hr ago",
     votes: 156,
-    lat: 37.3382,
-    lng: -121.8863,
+    lat: 37.3318,
+    lng: -121.8795,
     description:
-      "Heavy rain and strong winds expected. Flash flood warning in effect for low-lying areas.",
-    type: "weather",
-    userVote: null,
+      "Major road construction blocking two lanes on Highway 101. Expect significant delays during rush hour. Alternative routes recommended via Stevens Creek Blvd.",
+    type: "traffic",
     comments: [],
   },
 ];
 
+// Mock function to get city from coordinates
+const getCityFromCoordinates = async (
+  lat: number,
+  lng: number,
+): Promise<string> => {
+  // This would normally use a geocoding service
+  // For now, return a mock city based on general San Jose area
+  if (lat > 37.3 && lat < 37.4 && lng > -121.9 && lng < -121.8) {
+    return "San Jose";
+  }
+  return "Unknown City";
+};
+
+// Mock function to load nearby alerts
+const loadNearbyAlerts = async (lat: number, lng: number): Promise<Alert[]> => {
+  // Simulate API call
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return mockAlerts;
+};
+
+// Create welcome alert for user's location
+const createWelcomeAlert = (city: string, lat: number, lng: number): Alert => ({
+  id: "welcome",
+  title: `Welcome to ${city}!`,
+  location: city,
+  timeAgo: "Just now",
+  votes: 0,
+  lat,
+  lng,
+  description: `You're now viewing community safety alerts for ${city}. Stay informed about incidents, traffic, and important updates in your area.`,
+  type: "info",
+  comments: [],
+});
+
 export default function Index() {
   const { isAuthenticated } = useAuth();
   const { hasPermission, requestPermission } = useLocationPermission();
-
+  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [comment, setComment] = useState("");
-  const [showEventDetails, setShowEventDetails] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const [authPromptTrigger, setAuthPromptTrigger] = useState<
-    "vote" | "comment" | "profile" | "add_alert"
-  >("profile");
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [authPromptType, setAuthPromptType] = useState<
+    "vote" | "comment" | "create" | "profile"
+  >("vote");
+  const [currentPage, setCurrentPage] = useState(0);
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -143,10 +160,7 @@ export default function Index() {
   } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [welcomeAlert, setWelcomeAlert] = useState<Alert | null>(null);
-<<<<<<< HEAD
   const [locationError, setLocationError] = useState<string | null>(null);
-=======
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
 
   // Request location permission immediately on app load
   useEffect(() => {
@@ -158,20 +172,15 @@ export default function Index() {
           // Get user's current location
           navigator.geolocation.getCurrentPosition(
             async (position) => {
-<<<<<<< HEAD
               try {
                 const { latitude, longitude } = position.coords;
                 console.log("Location obtained:", { latitude, longitude });
 
-                // Clear any previous location error
-                setLocationError(null);
-
-                // Try to get city name from coordinates (mock for now)
+                // Try to get city name from coordinates
                 const city = await getCityFromCoordinates(latitude, longitude);
-
                 setUserLocation({ lat: latitude, lng: longitude, city });
 
-                // Create welcome alert
+                // Create welcome notification
                 const welcome = createWelcomeAlert(city, latitude, longitude);
                 setWelcomeAlert(welcome);
                 setSelectedAlert(welcome);
@@ -182,19 +191,23 @@ export default function Index() {
                   longitude,
                 );
                 setAlerts([welcome, ...nearbyAlerts]);
-              } catch (cityError) {
-                console.error("Error processing location:", cityError);
-                // Still use the coordinates even if city detection fails
-                const { latitude, longitude } = position.coords;
+
+                console.log(
+                  `Welcome to ${city}! Found ${nearbyAlerts.length} nearby alerts.`,
+                );
+              } catch (error) {
+                console.error("Error processing location:", error);
+                // Fall back to default behavior
+                const fallbackCity = "San Jose";
                 setUserLocation({
-                  lat: latitude,
-                  lng: longitude,
-                  city: "Your Area",
+                  lat: 37.3387,
+                  lng: -121.8853,
+                  city: fallbackCity,
                 });
                 const welcome = createWelcomeAlert(
-                  "Your Area",
-                  latitude,
-                  longitude,
+                  fallbackCity,
+                  37.3387,
+                  -121.8853,
                 );
                 setWelcomeAlert(welcome);
                 setSelectedAlert(welcome);
@@ -202,71 +215,39 @@ export default function Index() {
               }
             },
             (error) => {
-              // Detailed error handling for GeolocationPositionError
-              let errorMessage = "Unknown location error";
-              let fallbackCity = "San Jose";
+              console.error("Geolocation error:", error);
 
-              if (error && typeof error === "object") {
-                switch (error.code) {
-                  case 1: // PERMISSION_DENIED
-                    errorMessage = "Location access denied by user";
-                    break;
-                  case 2: // POSITION_UNAVAILABLE
-                    errorMessage = "Location information unavailable";
-                    break;
-                  case 3: // TIMEOUT
-                    errorMessage = "Location request timed out";
-                    break;
-                  default:
-                    errorMessage = `Location error: ${error.message || "Unknown error"}`;
-                }
+              // Enhanced error handling with specific error messages
+              let errorMessage = "Unknown geolocation error";
+              switch (error.code) {
+                case 1:
+                  errorMessage =
+                    "User denied location permission. Please enable location access in your browser settings to see personalized alerts.";
+                  break;
+                case 2:
+                  errorMessage =
+                    "Location information unavailable. Your device may not support location services.";
+                  break;
+                case 3:
+                  errorMessage =
+                    "Location request timed out. Please check your internet connection and try again.";
+                  break;
+                default:
+                  errorMessage = `Geolocation failed with error code ${error.code}: ${error.message}`;
               }
-
-              console.warn("Geolocation error details:", {
-                code: error?.code || "unknown",
-                message: error?.message || "no message",
-                details: errorMessage,
-                fullError: error,
-              });
 
               // Set user-friendly error message
               setLocationError(errorMessage);
 
-=======
-              const { latitude, longitude } = position.coords;
-
-              // Try to get city name from coordinates (mock for now)
-              const city = await getCityFromCoordinates(latitude, longitude);
-
-              setUserLocation({ lat: latitude, lng: longitude, city });
-
-              // Create welcome alert
-              const welcome = createWelcomeAlert(city, latitude, longitude);
-              setWelcomeAlert(welcome);
-              setSelectedAlert(welcome);
-
-              // Load alerts around user's location
-              const nearbyAlerts = await loadNearbyAlerts(latitude, longitude);
-              setAlerts([welcome, ...nearbyAlerts]);
-            },
-            (error) => {
-              console.error("Location error:", error);
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
               // Fallback to San Jose if location fails
+              const fallbackCity = "San Jose";
               setUserLocation({
                 lat: 37.3387,
                 lng: -121.8853,
-<<<<<<< HEAD
                 city: fallbackCity,
               });
               const welcome = createWelcomeAlert(
                 fallbackCity,
-=======
-                city: "San Jose",
-              });
-              const welcome = createWelcomeAlert(
-                "San Jose",
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
                 37.3387,
                 -121.8853,
               );
@@ -274,28 +255,36 @@ export default function Index() {
               setSelectedAlert(welcome);
               setAlerts([welcome, ...mockAlerts]);
             },
-<<<<<<< HEAD
             {
               enableHighAccuracy: true,
-              timeout: 15000, // 15 seconds
-              maximumAge: 300000, // 5 minutes
+              timeout: 15000,
+              maximumAge: 300000,
             },
-=======
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
           );
         } else {
-          // Use default San Jose location
-          setUserLocation({ lat: 37.3387, lng: -121.8853, city: "San Jose" });
-          const welcome = createWelcomeAlert("San Jose", 37.3387, -121.8853);
+          // Permission denied, fall back to default location
+          console.warn("Location permission denied, using default location");
+          const fallbackCity = "San Jose";
+          setUserLocation({
+            lat: 37.3387,
+            lng: -121.8853,
+            city: fallbackCity,
+          });
+          const welcome = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
           setWelcomeAlert(welcome);
           setSelectedAlert(welcome);
           setAlerts([welcome, ...mockAlerts]);
         }
       } catch (error) {
-        console.error("Permission error:", error);
-        // Fallback to San Jose
-        setUserLocation({ lat: 37.3387, lng: -121.8853, city: "San Jose" });
-        const welcome = createWelcomeAlert("San Jose", 37.3387, -121.8853);
+        console.error("Error requesting location permission:", error);
+        // Fall back to default location on any error
+        const fallbackCity = "San Jose";
+        setUserLocation({
+          lat: 37.3387,
+          lng: -121.8853,
+          city: fallbackCity,
+        });
+        const welcome = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
         setWelcomeAlert(welcome);
         setSelectedAlert(welcome);
         setAlerts([welcome, ...mockAlerts]);
@@ -307,497 +296,388 @@ export default function Index() {
     requestLocationOnLoad();
   }, [requestPermission]);
 
-  const handleVote = (alertId: string, direction: "up" | "down") => {
+  const handleCardClick = (alert: Alert) => {
+    setSelectedAlert(alert);
+    setShowEventModal(true);
+  };
+
+  const handleVote = (alertId: string, voteType: "up" | "down") => {
     if (!isAuthenticated) {
-      setAuthPromptTrigger("vote");
+      setAuthPromptType("vote");
       setShowAuthPrompt(true);
       return;
     }
 
-    // Handle voting logic
-    setAlerts((prev) =>
-      prev.map((alert) =>
+    setAlerts(
+      alerts.map((alert) =>
         alert.id === alertId
           ? {
               ...alert,
-              votes: alert.votes + (direction === "up" ? 1 : -1),
-              userVote: direction,
+              votes:
+                alert.userVote === voteType
+                  ? alert.votes - (voteType === "up" ? 1 : -1)
+                  : alert.userVote
+                    ? alert.votes + (voteType === "up" ? 2 : -2)
+                    : alert.votes + (voteType === "up" ? 1 : -1),
+              userVote: alert.userVote === voteType ? null : voteType,
             }
           : alert,
       ),
     );
-    console.log(`Voting ${direction} on alert ${alertId}`);
   };
 
-  const handleCommentVote = (commentId: string, direction: "up" | "down") => {
+  const handleCommentVote = (commentId: string, voteType: "up" | "down") => {
     if (!isAuthenticated) {
-      setAuthPromptTrigger("vote");
+      setAuthPromptType("vote");
       setShowAuthPrompt(true);
       return;
     }
 
-    // Handle comment voting logic
-    console.log(`Voting ${direction} on comment ${commentId}`);
+    if (selectedAlert) {
+      const updatedAlert = {
+        ...selectedAlert,
+        comments: selectedAlert.comments.map((comment) =>
+          comment.id === commentId
+            ? {
+                ...comment,
+                votes:
+                  comment.userVote === voteType
+                    ? comment.votes - (voteType === "up" ? 1 : -1)
+                    : comment.userVote
+                      ? comment.votes + (voteType === "up" ? 2 : -2)
+                      : comment.votes + (voteType === "up" ? 1 : -1),
+                userVote: comment.userVote === voteType ? null : voteType,
+              }
+            : comment,
+        ),
+      };
+      setSelectedAlert(updatedAlert);
+      setAlerts(
+        alerts.map((alert) =>
+          alert.id === selectedAlert.id ? updatedAlert : alert,
+        ),
+      );
+    }
   };
 
-  const submitComment = () => {
+  const handleAddComment = (commentText: string) => {
     if (!isAuthenticated) {
-      setAuthPromptTrigger("comment");
+      setAuthPromptType("comment");
       setShowAuthPrompt(true);
       return;
     }
 
-    if (comment.trim()) {
-      // Add comment logic
-      console.log("Adding comment:", comment);
-      setComment("");
+    if (selectedAlert) {
+      const newComment: Comment = {
+        id: Date.now().toString(),
+        user: "You",
+        text: commentText,
+        votes: 1,
+        avatar: "/avatars/you.jpg",
+        timeAgo: "Just now",
+        userVote: "up",
+      };
+
+      const updatedAlert = {
+        ...selectedAlert,
+        comments: [newComment, ...selectedAlert.comments],
+      };
+
+      setSelectedAlert(updatedAlert);
+      setAlerts(
+        alerts.map((alert) =>
+          alert.id === selectedAlert.id ? updatedAlert : alert,
+        ),
+      );
     }
   };
 
-  const handleAddAlert = () => {
-    if (!isAuthenticated) {
-      setAuthPromptTrigger("add_alert");
-      setShowAuthPrompt(true);
-      return;
-    }
-    // Navigate to add alert page
+  const alertsPerPage = 3;
+  const totalPages = Math.ceil(alerts.length / alertsPerPage);
+  const startIndex = currentPage * alertsPerPage;
+  const visibleAlerts = alerts.slice(startIndex, startIndex + alertsPerPage);
+
+  const nextPage = () => {
+    setCurrentPage((prev) => (prev + 1) % totalPages);
   };
 
-  const handleProfileClick = () => {
-    if (!isAuthenticated) {
-      setAuthPromptTrigger("profile");
-      setShowAuthPrompt(true);
-      return;
-    }
-    // Navigate to profile
+  const prevPage = () => {
+    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
   };
 
-  const handleAlertClick = (alert: Alert) => {
-    setSelectedAlert(alert);
-    setShowEventDetails(true);
-  };
-
-  const handleLocationRequest = async () => {
-    const granted = await requestPermission();
-    if (granted) {
-      // Load alerts within 100km of user location
-      console.log("Location granted, loading nearby alerts");
-    }
-  };
-
-  // Helper function to get city name from coordinates
-  const getCityFromCoordinates = async (
-    lat: number,
-    lng: number,
-  ): Promise<string> => {
-    try {
-      // In a real app, this would use Google Maps Geocoding API
-      // For now, we'll use a simple mock based on coordinates
-      if (lat >= 37.2 && lat <= 37.5 && lng >= -122.0 && lng <= -121.7) {
-        return "San Jose";
-      } else if (lat >= 37.7 && lat <= 37.8 && lng >= -122.5 && lng <= -122.3) {
-        return "San Francisco";
-      } else if (lat >= 37.4 && lat <= 37.5 && lng >= -122.3 && lng <= -122.1) {
-        return "Palo Alto";
-      } else {
-        return "Your Area";
-      }
-    } catch (error) {
-      return "Your Area";
-    }
-  };
-
-  // Helper function to create welcome alert
-  const createWelcomeAlert = (
-    city: string,
-    lat: number,
-    lng: number,
-  ): Alert => {
-    return {
-      id: "welcome",
-      title: "Welcome to SafeAlert",
-      location: `${city}, CA`,
-      timeAgo: "Just now",
-      votes: 0,
-      lat,
-      lng,
-      description: `Here's where you'll get notified on everything happening in and around ${city}. SafeAlert keeps you informed about safety incidents, traffic issues, weather alerts, and community updates within 100km of your location. Your community is working together to keep everyone safe and informed.`,
-      type: "community",
-      userVote: null,
-      comments: [
-        {
-          id: "welcome-1",
-          user: "SAFEALERT",
-          text: `🎯 You'll receive alerts within 100km of ${city}`,
-          votes: 0,
-          avatar: "🛡️",
-          timeAgo: "Just now",
-          userVote: null,
-        },
-        {
-          id: "welcome-2",
-          user: "SAFEALERT",
-          text: "🔔 Enable notifications to get real-time alerts",
-          votes: 0,
-          avatar: "🛡️",
-          timeAgo: "Just now",
-          userVote: null,
-        },
-        {
-          id: "welcome-3",
-          user: "SAFEALERT",
-          text: "👥 Join the community to verify and report incidents",
-          votes: 0,
-          avatar: "🛡️",
-          timeAgo: "Just now",
-          userVote: null,
-        },
-      ],
-    };
-  };
-
-  // Helper function to load nearby alerts (mock for now)
-  const loadNearbyAlerts = async (
-    lat: number,
-    lng: number,
-  ): Promise<Alert[]> => {
-    // In a real app, this would fetch alerts from the backend within 100km
-    // For now, return mock alerts with adjusted coordinates near user
-    return mockAlerts.map((alert) => ({
-      ...alert,
-      lat: lat + (Math.random() - 0.5) * 0.1, // Random offset within ~10km
-      lng: lng + (Math.random() - 0.5) * 0.1,
-    }));
-  };
+  if (isLoadingLocation) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Getting your location...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-screen bg-map-bg overflow-hidden relative">
-      {/* Status Bar */}
-      <div className="absolute top-0 left-0 right-0 h-11 bg-transparent flex items-center justify-between px-4 z-50 text-white text-sm font-medium">
-        <span>12:22</span>
-<<<<<<< HEAD
-        <div className="flex items-center gap-1">
-          <div className="flex gap-1">
-            <div className="w-1 h-3 bg-white rounded-full"></div>
-            <div className="w-1 h-3 bg-white rounded-full"></div>
-            <div className="w-1 h-3 bg-white rounded-full"></div>
-            <div className="w-1 h-3 bg-white/50 rounded-full"></div>
-          </div>
-          <div className="ml-2">
-            <svg width="18" height="12" fill="white">
-              <rect width="4" height="12" rx="1" />
-              <rect x="6" width="4" height="8" rx="1" />
-              <rect x="12" width="4" height="4" rx="1" />
-            </svg>
-          </div>
-          <div className="ml-1 w-6 h-3 border border-white rounded-sm">
-            <div className="w-4 h-1.5 bg-white rounded-sm m-0.5"></div>
-=======
-        <div className="flex items-center gap-3">
-          {/* Directions Icon */}
-          <Link to="/directions" className="hover:scale-110 transition-transform" title="Directions">
-            <MapPin className="w-6 h-6 text-white" />
-          </Link>
-          {/* Existing status indicators */}
-          <div className="flex items-center gap-1">
-            <div className="flex gap-1">
-              <div className="w-1 h-3 bg-white rounded-full"></div>
-              <div className="w-1 h-3 bg-white rounded-full"></div>
-              <div className="w-1 h-3 bg-white rounded-full"></div>
-              <div className="w-1 h-3 bg-white/50 rounded-full"></div>
-            </div>
-            <div className="ml-2">
-              <svg width="18" height="12" fill="white">
-                <rect width="4" height="12" rx="1" />
-                <rect x="6" width="4" height="8" rx="1" />
-                <rect x="12" width="4" height="4" rx="1" />
-              </svg>
-            </div>
-            <div className="ml-1 w-6 h-3 border border-white rounded-sm">
-              <div className="w-4 h-1.5 bg-white rounded-sm m-0.5"></div>
-            </div>
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
-          </div>
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* Map placeholder */}
+      <div className="h-screen w-full bg-gradient-to-br from-green-100 to-blue-100 relative overflow-hidden">
+        {/* Map UI Controls */}
+        <div className="absolute top-4 left-4 z-20">
+          <button className="bg-white rounded-full p-3 shadow-lg">
+            <Home className="h-6 w-6 text-gray-700" />
+          </button>
         </div>
-      </div>
-
-<<<<<<< HEAD
-=======
-      {/* Onboarding fallback if no location */}
-      {!userLocation && !isLoadingLocation && (
-        <div className="absolute top-20 left-4 right-4 bg-card rounded-2xl p-4 shadow-lg border border-border z-30">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 flex items-center justify-center bg-blue-100 rounded-full text-blue-600 text-2xl">👋</div>
-            <div className="flex-1">
-              <p className="font-bold text-foreground mb-1">Welcome to SafeAlert!</p>
-              <p className="text-sm text-muted-foreground mb-2">
-                Enable location to see real alerts near you. Or explore the app and see how notifications and comments work!
-              </p>
-              <button
-                onClick={handleLocationRequest}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
-              >
-                Allow Location Access
-              </button>
-            </div>
-          </div>
-          <div className="mt-4">
-            <p className="font-medium text-foreground mb-2">How SafeAlert works:</p>
-            <div className="space-y-2">
-              <div className="bg-muted rounded-lg p-3 flex gap-3 items-start">
-                <span className="text-xl">🎯</span>
-                <span className="text-sm text-muted-foreground">You'll receive alerts within 100km of your area</span>
-              </div>
-              <div className="bg-muted rounded-lg p-3 flex gap-3 items-start">
-                <span className="text-xl">🔔</span>
-                <span className="text-sm text-muted-foreground">Enable notifications to get real-time alerts</span>
-              </div>
-              <div className="bg-muted rounded-lg p-3 flex gap-3 items-start">
-                <span className="text-xl">👥</span>
-                <span className="text-sm text-muted-foreground">Join the community to verify and report incidents</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
-      {/* Map Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900">
-        {/* Street Grid Pattern */}
-        <svg className="absolute inset-0 w-full h-full opacity-30">
-          <defs>
-            <pattern
-              id="grid"
-              width="60"
-              height="60"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 60 0 L 0 0 0 60"
-                fill="none"
-                stroke="rgb(180 150 100)"
-                strokeWidth="1"
-                opacity="0.4"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-
-        {/* Dynamic Street Labels based on user location */}
-        {userLocation ? (
-          <>
-            <div className="absolute top-20 left-8 text-map-label font-medium text-lg tracking-wide">
-              {userLocation.city.toUpperCase()}
-            </div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-map-label font-bold text-2xl">
-              {userLocation.city}
-            </div>
-            <div className="absolute bottom-1/3 left-1/3 text-map-label font-medium text-sm">
-              YOUR AREA
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="absolute top-20 left-8 text-map-label font-medium text-lg tracking-wide">
-              LOCATING...
-            </div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-map-label font-bold text-2xl">
-              Finding Location
-            </div>
-          </>
-        )}
-
-        {/* Highway Markers */}
-        <div className="absolute top-16 left-4 bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold">
-          480
-        </div>
-        <div className="absolute top-12 right-32 bg-green-600 text-white px-2 py-1 rounded text-xs font-bold">
-          101
-        </div>
-        <div className="absolute bottom-20 left-6 bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold">
-          280
-        </div>
-      </div>
-
-      {/* User Location Marker */}
-      {userLocation && (
-        <div
-          className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg z-20"
-          style={{
-            left: "50%",
-            top: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <div className="absolute inset-0 bg-blue-500/30 rounded-full animate-ping"></div>
-        </div>
-      )}
-
-      {/* Alert Markers */}
-      {alerts.map((alert, index) => {
-        const isWelcome = alert.id === "welcome";
-        return (
+        <div className="absolute top-4 right-4 z-20">
           <button
-            key={alert.id}
-            onClick={() => handleAlertClick(alert)}
-            className={cn(
-              "absolute w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform",
-              isWelcome ? "bg-green-500 border-2 border-white" : "bg-alert",
-            )}
-            style={{
-              left: isWelcome ? "50%" : `${20 + (index - 1) * 40}%`,
-              top: isWelcome ? "45%" : `${52 - (index - 1) * 10}%`,
-              transform: isWelcome ? "translate(-50%, -50%)" : "none",
+            className="bg-white rounded-full p-3 shadow-lg"
+            onClick={() => {
+              if (!isAuthenticated) {
+                setAuthPromptType("profile");
+                setShowAuthPrompt(true);
+              }
             }}
           >
-            {isWelcome ? (
-              <span className="text-white text-lg">👋</span>
-            ) : (
-              <MapPin className="w-5 h-5 text-white" />
-            )}
+            <User className="h-6 w-6 text-gray-700" />
           </button>
-        );
-      })}
+        </div>
 
-      {/* Action Buttons */}
-      <div
-        className={cn(
-          "absolute right-6 flex flex-col gap-3 z-40 transition-all duration-300",
-          selectedAlert && !isExpanded
-            ? "bottom-1/2 transform translate-y-1/2"
-            : "bottom-32",
-        )}
-      >
-<<<<<<< HEAD
-        <Link
-          to="/directions"
-          className="w-12 h-12 bg-card rounded-full flex items-center justify-center shadow-lg border border-border hover:scale-105 transition-transform"
-=======
-        {/* Directions FAB: Link to Directions page */}
-        <Link
-          to="/directions"
-          className="w-12 h-12 bg-card rounded-full flex items-center justify-center shadow-lg border border-border hover:scale-105 transition-transform"
-          title="Directions"
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
-        >
-          <MapPin className="w-6 h-6 text-foreground" />
-        </Link>
-        <button
-          onClick={handleLocationRequest}
-          className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
-          title="Center on your location"
-        >
-          <Target className="w-6 h-6 text-white" />
-        </button>
-      </div>
-
-<<<<<<< HEAD
-      {/* Loading/Error State */}
-=======
-      {/* Loading State */}
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
-      {isLoadingLocation && (
-        <div className="absolute top-20 left-4 right-4 bg-card rounded-2xl p-4 shadow-lg border border-border z-30">
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 text-alert animate-spin">📍</div>
-            <div className="flex-1">
-              <p className="font-medium text-foreground mb-1">
-                Finding your location...
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Getting alerts for your area
-              </p>
+        {/* Location status */}
+        {userLocation && (
+          <div className="absolute top-20 left-4 z-20 bg-white rounded-lg p-2 shadow-lg">
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-gray-700">{userLocation.city}</span>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-<<<<<<< HEAD
-      {/* Location Error State */}
-      {locationError && !isLoadingLocation && (
-        <div className="absolute top-20 left-4 right-4 bg-card rounded-2xl p-4 shadow-lg border border-border z-30">
-          <div className="flex items-center gap-3">
-            <div className="w-5 h-5 text-yellow-500">⚠️</div>
-            <div className="flex-1">
-              <p className="font-medium text-foreground mb-1">
-                Location unavailable
-              </p>
-              <p className="text-sm text-muted-foreground mb-2">
-                {locationError}. Showing alerts for San Jose area.
-              </p>
-              <button
-                onClick={() => {
-                  setLocationError(null);
-                  setIsLoadingLocation(true);
-                  // Retry location request
-                  handleLocationRequest();
-                }}
-                className="text-sm text-alert font-medium hover:underline"
-              >
-                Try again
-              </button>
+        {/* Location error display */}
+        {locationError && (
+          <div className="absolute top-20 left-4 right-4 z-20 bg-red-50 border border-red-200 rounded-lg p-3 shadow-lg">
+            <div className="flex items-start space-x-2">
+              <X className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm text-red-800 font-medium">
+                  Location Error
+                </p>
+                <p className="text-xs text-red-700 mt-1">{locationError}</p>
+              </div>
             </div>
-            <button
-              onClick={() => setLocationError(null)}
-              className="p-1 rounded-full hover:bg-muted/50"
+          </div>
+        )}
+
+        {/* Mock map markers */}
+        <div className="absolute inset-0">
+          {alerts.map((alert) => (
+            <div
+              key={alert.id}
+              className={cn(
+                "absolute w-6 h-6 rounded-full border-2 border-white shadow-lg cursor-pointer transform -translate-x-1/2 -translate-y-1/2",
+                alert.type === "emergency" && "bg-red-500",
+                alert.type === "crime" && "bg-orange-500",
+                alert.type === "traffic" && "bg-yellow-500",
+                alert.type === "info" && "bg-blue-500",
+                selectedAlert?.id === alert.id && "ring-4 ring-blue-300",
+              )}
+              style={{
+                left: `${50 + (alert.lng + 121.8853) * 1000}%`,
+                top: `${50 - (alert.lat - 37.3387) * 1000}%`,
+              }}
+              onClick={() => handleCardClick(alert)}
+            />
+          ))}
+        </div>
+
+        {/* Current location marker */}
+        {userLocation && (
+          <div
+            className="absolute w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg transform -translate-x-1/2 -translate-y-1/2"
+            style={{
+              left: `${50 + (userLocation.lng + 121.8853) * 1000}%`,
+              top: `${50 - (userLocation.lat - 37.3387) * 1000}%`,
+            }}
+          >
+            <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping"></div>
+          </div>
+        )}
+
+        {/* Floating Action Buttons */}
+        <div
+          className={cn(
+            "absolute right-4 z-20 transition-all duration-300",
+            selectedAlert ? "bottom-80" : "bottom-28",
+          )}
+        >
+          <div className="flex flex-col space-y-4">
+            <Link
+              to="/directions"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-colors"
             >
-              <X className="w-4 h-4 text-muted-foreground" />
+              <Send className="h-6 w-6" />
+            </Link>
+            <button className="bg-white hover:bg-gray-50 text-gray-700 rounded-full p-4 shadow-lg transition-colors">
+              <Target className="h-6 w-6" />
+            </button>
+            <button
+              className="bg-green-600 hover:bg-green-700 text-white rounded-full p-4 shadow-lg transition-colors"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  setAuthPromptType("create");
+                  setShowAuthPrompt(true);
+                }
+              }}
+            >
+              <Plus className="h-6 w-6" />
             </button>
           </div>
         </div>
-      )}
 
-=======
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
-      {/* Event Details Modal */}
+        {/* Bottom Sheet */}
+        <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-10">
+          <div className="flex justify-center py-3">
+            <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+          </div>
+
+          <div className="px-6 pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Recent Alerts
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {userLocation?.city || "San Jose"} • {alerts.length} active
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                {totalPages > 1 && (
+                  <>
+                    <button
+                      onClick={prevPage}
+                      className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                    >
+                      <ChevronUp className="h-4 w-4 text-gray-600" />
+                    </button>
+                    <span className="text-xs text-gray-500">
+                      {currentPage + 1}/{totalPages}
+                    </span>
+                    <button
+                      onClick={nextPage}
+                      className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                    >
+                      <ChevronDown className="h-4 w-4 text-gray-600" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {visibleAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={cn(
+                    "p-4 rounded-xl border cursor-pointer transition-all duration-200",
+                    selectedAlert?.id === alert.id
+                      ? "bg-blue-50 border-blue-200 shadow-md"
+                      : "bg-white border-gray-200 hover:bg-gray-50",
+                    alert.id === "welcome" &&
+                      "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
+                  )}
+                  onClick={() => handleCardClick(alert)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <h3 className="font-semibold text-gray-900">
+                          {alert.title}
+                        </h3>
+                        <span
+                          className={cn(
+                            "px-2 py-0.5 text-xs font-medium rounded-full",
+                            alert.type === "emergency" &&
+                              "bg-red-100 text-red-800",
+                            alert.type === "crime" &&
+                              "bg-orange-100 text-orange-800",
+                            alert.type === "traffic" &&
+                              "bg-yellow-100 text-yellow-800",
+                            alert.type === "info" &&
+                              "bg-blue-100 text-blue-800",
+                          )}
+                        >
+                          {alert.type}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {alert.location}
+                      </p>
+                      <p className="text-xs text-gray-500">{alert.timeAgo}</p>
+                    </div>
+                    <div className="flex items-center space-x-3 ml-4">
+                      {alert.id !== "welcome" && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleVote(alert.id, "up");
+                            }}
+                            className={cn(
+                              "p-1 rounded transition-colors",
+                              alert.userVote === "up"
+                                ? "bg-green-100 text-green-600"
+                                : "text-gray-400 hover:text-green-600 hover:bg-green-50",
+                            )}
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </button>
+                          <span className="text-sm font-medium text-gray-900">
+                            {alert.votes}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleVote(alert.id, "down");
+                            }}
+                            className={cn(
+                              "p-1 rounded transition-colors",
+                              alert.userVote === "down"
+                                ? "bg-red-100 text-red-600"
+                                : "text-gray-400 hover:text-red-600 hover:bg-red-50",
+                            )}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <EventDetailsModal
-        isOpen={showEventDetails}
-        onClose={() => {
-          setShowEventDetails(false);
-          // If closing welcome alert, clear selection
-          if (selectedAlert?.id === "welcome") {
-            setSelectedAlert(null);
-          }
-        }}
         alert={selectedAlert}
+        isOpen={showEventModal}
+        onClose={() => {
+          setShowEventModal(false);
+          setSelectedAlert(null);
+        }}
         onVote={handleVote}
         onCommentVote={handleCommentVote}
-        onAddComment={(alertId, comment) => {
-          // Handle adding comment
-          console.log("Adding comment to alert:", alertId, comment);
-        }}
-        onAuthRequired={() => {
-          setAuthPromptTrigger("comment");
+        onAddComment={handleAddComment}
+        isAuthenticated={isAuthenticated}
+        onAuthPrompt={(type) => {
+          setAuthPromptType(type);
           setShowAuthPrompt(true);
         }}
-        isAuthenticated={isAuthenticated}
       />
 
-      {/* Authentication Prompt Modal */}
       <AuthPromptModal
         isOpen={showAuthPrompt}
         onClose={() => setShowAuthPrompt(false)}
-        trigger={authPromptTrigger}
+        type={authPromptType}
       />
-
-      {/* Bottom Navigation */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-card border-t border-border">
-        <div className="flex items-center justify-around h-full px-8">
-          <button className="p-3">
-            <Home className="w-6 h-6 text-foreground" />
-          </button>
-          <button onClick={handleAddAlert} className="p-3">
-            <Plus className="w-6 h-6 text-muted-foreground" />
-          </button>
-          <button onClick={handleProfileClick} className="p-3">
-            <User className="w-6 h-6 text-muted-foreground" />
-          </button>
-        </div>
-        {/* Home Indicator */}
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-white rounded-full"></div>
-      </div>
     </div>
   );
 }
