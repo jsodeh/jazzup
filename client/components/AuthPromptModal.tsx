@@ -23,10 +23,10 @@ export default function AuthPromptModal({
           description:
             "Help keep your community safe by verifying incident reports. Your vote helps others know which alerts are accurate.",
           benefits: [
-            "Build trust score in the community",
-            "Help verify incident accuracy",
-            "Access to verified-only discussions",
-            "Priority alert notifications",
+            "Save favorite destinations for quick access",
+            "Get personalized route recommendations",
+            "Access to verified incident reports along routes",
+            "Priority navigation and safety alerts",
           ],
         };
       case "comment":
