@@ -11,9 +11,6 @@ import Index from "./pages/Index";
 import Directions from "./pages/Directions";
 import Profile from "./pages/Profile";
 import AddAlert from "./pages/AddAlert";
-import Onboarding from "./pages/Onboarding";
-import Setup from "./pages/Setup";
-import Verification from "./pages/Verification";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,9 +27,6 @@ const App = () => (
             <Route path="/directions" element={<Directions />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/add-alert" element={<AddAlert />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/setup" element={<Setup />} />
-            <Route path="/verification" element={<Verification />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
