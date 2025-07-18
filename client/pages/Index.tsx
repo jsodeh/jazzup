@@ -16,6 +16,7 @@ import EventDetailsModal from "@/components/EventDetailsModal";
 import AuthPromptModal from "@/components/AuthPromptModal";
 import LocationPermissionModal from "@/components/LocationPermissionModal";
 import ActionButtonTooltip from "@/components/ActionButtonTooltip";
+import DirectionsHero from "@/components/DirectionsHero";
 import { useAuth, useLocationPermission } from "@/lib/auth";
 import {
   getNearbyAlerts,
@@ -131,6 +132,8 @@ export default function Index() {
   const [welcomeAlert, setWelcomeAlert] = useState<Alert | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showDirectionsHero, setShowDirectionsHero] = useState(true);
+  const [hasNearbyAlerts, setHasNearbyAlerts] = useState(false);
 
   // Show location permission modal on app load
   useEffect(() => {
@@ -178,6 +181,7 @@ export default function Index() {
                 ),
               );
 
+              setHasNearbyAlerts(transformedAlerts.length > 0);
               setAlerts([welcome, ...transformedAlerts]);
 
               console.log(
@@ -267,6 +271,11 @@ export default function Index() {
       console.log("Recentering map to:", userLocation);
       // For now, just show a visual feedback
     }
+  };
+
+  const handleGetDirections = (destination: string) => {
+    // Navigate to directions page with destination pre-filled
+    window.location.href = `/directions?destination=${encodeURIComponent(destination)}`;
   };
 
   const handleCardClick = (alert: Alert) => {
@@ -425,254 +434,280 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gray-50 relative">
-      {/* Map placeholder */}
-      <div className="h-screen w-full bg-gradient-to-br from-green-100 to-blue-100 relative overflow-hidden">
-        {/* Map UI Controls */}
-        <div className="absolute top-4 left-4 z-20">
-          <button className="bg-white rounded-full p-3 shadow-lg">
-            <Home className="h-6 w-6 text-gray-700" />
-          </button>
-        </div>
-        <div className="absolute top-4 right-4 z-20">
-          <button
-            className="bg-white rounded-full p-3 shadow-lg"
-            onClick={() => {
-              if (!isAuthenticated) {
-                setAuthPromptType("profile");
-                setShowAuthPrompt(true);
-              }
-            }}
-          >
-            <User className="h-6 w-6 text-gray-700" />
-          </button>
-        </div>
+      {/* Directions Hero Section */}
+      {showDirectionsHero && (
+        <DirectionsHero
+          userLocation={userLocation}
+          onGetDirections={handleGetDirections}
+        />
+      )}
 
-        {/* Location status */}
-        {userLocation && (
-          <div className="absolute top-20 left-4 z-20 bg-white rounded-lg p-2 shadow-lg">
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-4 w-4 text-blue-600" />
-              <span className="text-sm text-gray-700">{userLocation.city}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Location error display */}
-        {locationError && (
-          <div className="absolute top-20 left-4 right-4 z-20 bg-red-50 border border-red-200 rounded-lg p-3 shadow-lg">
-            <div className="flex items-start space-x-2">
-              <X className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm text-red-800 font-medium">
-                  Location Error
-                </p>
-                <p className="text-xs text-red-700 mt-1">{locationError}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Mock map markers */}
-        <div className="absolute inset-0">
-          {alerts.map((alert) => (
-            <div
-              key={alert.id}
-              className={cn(
-                "absolute w-6 h-6 rounded-full border-2 border-white shadow-lg cursor-pointer transform -translate-x-1/2 -translate-y-1/2",
-                alert.type === "emergency" && "bg-red-500",
-                alert.type === "crime" && "bg-orange-500",
-                alert.type === "traffic" && "bg-yellow-500",
-                alert.type === "info" && "bg-blue-500",
-                selectedAlert?.id === alert.id && "ring-4 ring-blue-300",
-              )}
-              style={{
-                left: `${50 + (alert.lng + 121.8853) * 1000}%`,
-                top: `${50 - (alert.lat - 37.3387) * 1000}%`,
-              }}
-              onClick={() => handleCardClick(alert)}
-            />
-          ))}
-        </div>
-
-        {/* Current location marker */}
-        {userLocation && (
-          <div
-            className="absolute w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg transform -translate-x-1/2 -translate-y-1/2"
-            style={{
-              left: `${50 + (userLocation.lng + 121.8853) * 1000}%`,
-              top: `${50 - (userLocation.lat - 37.3387) * 1000}%`,
-            }}
-          >
-            <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping"></div>
-          </div>
-        )}
-
-        {/* Floating Action Buttons */}
+      {/* Map Section - Only show when there are alerts or hero is hidden */}
+      {(!showDirectionsHero || hasNearbyAlerts) && (
         <div
           className={cn(
-            "absolute right-4 z-20 transition-all duration-300",
-            selectedAlert ? "bottom-80" : "bottom-28",
+            "w-full bg-gradient-to-br from-green-100 to-blue-100 relative overflow-hidden",
+            showDirectionsHero ? "h-96" : "h-screen",
           )}
         >
-          <div className="flex flex-col space-y-4">
-            <ActionButtonTooltip tooltip="Get Directions">
-              <Link
-                to="/directions"
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-colors"
-              >
-                <Send className="h-6 w-6" />
-              </Link>
-            </ActionButtonTooltip>
-
-            <ActionButtonTooltip tooltip="Recenter Map">
-              <button
-                onClick={recenterMap}
-                className="bg-white hover:bg-gray-50 text-gray-700 rounded-full p-4 shadow-lg transition-colors"
-              >
-                <Target className="h-6 w-6" />
-              </button>
-            </ActionButtonTooltip>
-
-            <ActionButtonTooltip tooltip="Add Alert">
-              <button
-                className="bg-green-600 hover:bg-green-700 text-white rounded-full p-4 shadow-lg transition-colors"
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    setAuthPromptType("create");
-                    setShowAuthPrompt(true);
-                  }
-                }}
-              >
-                <Plus className="h-6 w-6" />
-              </button>
-            </ActionButtonTooltip>
+          {/* Map UI Controls */}
+          <div className="absolute top-4 left-4 z-20">
+            <button className="bg-white rounded-full p-3 shadow-lg">
+              <Home className="h-6 w-6 text-gray-700" />
+            </button>
           </div>
-        </div>
-
-        {/* Bottom Sheet */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-10">
-          <div className="flex justify-center py-3">
-            <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+          <div className="absolute top-4 right-4 z-20">
+            <button
+              className="bg-white rounded-full p-3 shadow-lg"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  setAuthPromptType("profile");
+                  setShowAuthPrompt(true);
+                }
+              }}
+            >
+              <User className="h-6 w-6 text-gray-700" />
+            </button>
           </div>
 
-          <div className="px-6 pb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Recent Alerts
-                </h2>
-                <p className="text-sm text-gray-500">
-                  {userLocation?.city || "San Jose"} • {alerts.length} active
-                </p>
-              </div>
+          {/* Location status */}
+          {userLocation && (
+            <div className="absolute top-20 left-4 z-20 bg-white rounded-lg p-2 shadow-lg">
               <div className="flex items-center space-x-2">
-                {totalPages > 1 && (
-                  <>
-                    <button
-                      onClick={prevPage}
-                      className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                    >
-                      <ChevronUp className="h-4 w-4 text-gray-600" />
-                    </button>
-                    <span className="text-xs text-gray-500">
-                      {currentPage + 1}/{totalPages}
-                    </span>
-                    <button
-                      onClick={nextPage}
-                      className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                    >
-                      <ChevronDown className="h-4 w-4 text-gray-600" />
-                    </button>
-                  </>
-                )}
+                <MapPin className="h-4 w-4 text-blue-600" />
+                <span className="text-sm text-gray-700">
+                  {userLocation.city}
+                </span>
               </div>
             </div>
+          )}
 
-            <div className="space-y-3">
-              {visibleAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={cn(
-                    "p-4 rounded-xl border cursor-pointer transition-all duration-200",
-                    selectedAlert?.id === alert.id
-                      ? "bg-blue-50 border-blue-200 shadow-md"
-                      : "bg-white border-gray-200 hover:bg-gray-50",
-                    alert.id === "welcome" &&
-                      "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
-                  )}
-                  onClick={() => handleCardClick(alert)}
+          {/* Location error display */}
+          {locationError && (
+            <div className="absolute top-20 left-4 right-4 z-20 bg-red-50 border border-red-200 rounded-lg p-3 shadow-lg">
+              <div className="flex items-start space-x-2">
+                <X className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm text-red-800 font-medium">
+                    Location Error
+                  </p>
+                  <p className="text-xs text-red-700 mt-1">{locationError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mock map markers */}
+          <div className="absolute inset-0">
+            {alerts.map((alert) => (
+              <div
+                key={alert.id}
+                className={cn(
+                  "absolute w-6 h-6 rounded-full border-2 border-white shadow-lg cursor-pointer transform -translate-x-1/2 -translate-y-1/2",
+                  alert.type === "emergency" && "bg-red-500",
+                  alert.type === "crime" && "bg-orange-500",
+                  alert.type === "traffic" && "bg-yellow-500",
+                  alert.type === "info" && "bg-blue-500",
+                  selectedAlert?.id === alert.id && "ring-4 ring-blue-300",
+                )}
+                style={{
+                  left: `${50 + (alert.lng + 121.8853) * 1000}%`,
+                  top: `${50 - (alert.lat - 37.3387) * 1000}%`,
+                }}
+                onClick={() => handleCardClick(alert)}
+              />
+            ))}
+          </div>
+
+          {/* Current location marker */}
+          {userLocation && (
+            <div
+              className="absolute w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg transform -translate-x-1/2 -translate-y-1/2"
+              style={{
+                left: `${50 + (userLocation.lng + 121.8853) * 1000}%`,
+                top: `${50 - (userLocation.lat - 37.3387) * 1000}%`,
+              }}
+            >
+              <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping"></div>
+            </div>
+          )}
+
+          {/* Floating Action Buttons */}
+          <div
+            className={cn(
+              "absolute right-4 z-20 transition-all duration-300",
+              selectedAlert ? "bottom-80" : "bottom-28",
+            )}
+          >
+            <div className="flex flex-col space-y-4">
+              <ActionButtonTooltip
+                tooltip="Get Directions"
+                autoShow
+                delay={3000}
+              >
+                <Link
+                  to="/directions"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-colors"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h3 className="font-semibold text-gray-900">
-                          {alert.title}
-                        </h3>
-                        <span
-                          className={cn(
-                            "px-2 py-0.5 text-xs font-medium rounded-full",
-                            alert.type === "emergency" &&
-                              "bg-red-100 text-red-800",
-                            alert.type === "crime" &&
-                              "bg-orange-100 text-orange-800",
-                            alert.type === "traffic" &&
-                              "bg-yellow-100 text-yellow-800",
-                            alert.type === "info" &&
-                              "bg-blue-100 text-blue-800",
-                          )}
+                  <Send className="h-6 w-6" />
+                </Link>
+              </ActionButtonTooltip>
+
+              <ActionButtonTooltip tooltip="Recenter Map" autoShow delay={4000}>
+                <button
+                  onClick={recenterMap}
+                  className="bg-white hover:bg-gray-50 text-gray-700 rounded-full p-4 shadow-lg transition-colors"
+                >
+                  <Target className="h-6 w-6" />
+                </button>
+              </ActionButtonTooltip>
+
+              <ActionButtonTooltip tooltip="Add Alert" autoShow delay={5000}>
+                <button
+                  className="bg-green-600 hover:bg-green-700 text-white rounded-full p-4 shadow-lg transition-colors"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      setAuthPromptType("create");
+                      setShowAuthPrompt(true);
+                    }
+                  }}
+                >
+                  <Plus className="h-6 w-6" />
+                </button>
+              </ActionButtonTooltip>
+            </div>
+          </div>
+
+          {/* Bottom Sheet - Only show when there are alerts */}
+          {hasNearbyAlerts && (
+            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-10">
+              <div className="flex justify-center py-3">
+                <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+              </div>
+
+              <div className="px-6 pb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Recent Alerts
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {userLocation?.city || "San Jose"} • {alerts.length}{" "}
+                      active
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {totalPages > 1 && (
+                      <>
+                        <button
+                          onClick={prevPage}
+                          className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                         >
-                          {alert.type}
+                          <ChevronUp className="h-4 w-4 text-gray-600" />
+                        </button>
+                        <span className="text-xs text-gray-500">
+                          {currentPage + 1}/{totalPages}
                         </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {alert.location}
-                      </p>
-                      <p className="text-xs text-gray-500">{alert.timeAgo}</p>
-                    </div>
-                    <div className="flex items-center space-x-3 ml-4">
-                      {alert.id !== "welcome" && (
-                        <>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleVote(alert.id, "up");
-                            }}
-                            className={cn(
-                              "p-1 rounded transition-colors",
-                              alert.userVote === "up"
-                                ? "bg-green-100 text-green-600"
-                                : "text-gray-400 hover:text-green-600 hover:bg-green-50",
-                            )}
-                          >
-                            <ChevronUp className="h-4 w-4" />
-                          </button>
-                          <span className="text-sm font-medium text-gray-900">
-                            {alert.votes}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleVote(alert.id, "down");
-                            }}
-                            className={cn(
-                              "p-1 rounded transition-colors",
-                              alert.userVote === "down"
-                                ? "bg-red-100 text-red-600"
-                                : "text-gray-400 hover:text-red-600 hover:bg-red-50",
-                            )}
-                          >
-                            <ChevronDown className="h-4 w-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
+                        <button
+                          onClick={nextPage}
+                          className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                        >
+                          <ChevronDown className="h-4 w-4 text-gray-600" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-              ))}
+
+                <div className="space-y-3">
+                  {visibleAlerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className={cn(
+                        "p-4 rounded-xl border cursor-pointer transition-all duration-200",
+                        selectedAlert?.id === alert.id
+                          ? "bg-blue-50 border-blue-200 shadow-md"
+                          : "bg-white border-gray-200 hover:bg-gray-50",
+                        alert.id === "welcome" &&
+                          "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
+                      )}
+                      onClick={() => handleCardClick(alert)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h3 className="font-semibold text-gray-900">
+                              {alert.title}
+                            </h3>
+                            <span
+                              className={cn(
+                                "px-2 py-0.5 text-xs font-medium rounded-full",
+                                alert.type === "emergency" &&
+                                  "bg-red-100 text-red-800",
+                                alert.type === "crime" &&
+                                  "bg-orange-100 text-orange-800",
+                                alert.type === "traffic" &&
+                                  "bg-yellow-100 text-yellow-800",
+                                alert.type === "info" &&
+                                  "bg-blue-100 text-blue-800",
+                              )}
+                            >
+                              {alert.type}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {alert.location}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {alert.timeAgo}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-3 ml-4">
+                          {alert.id !== "welcome" && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVote(alert.id, "up");
+                                }}
+                                className={cn(
+                                  "p-1 rounded transition-colors",
+                                  alert.userVote === "up"
+                                    ? "bg-green-100 text-green-600"
+                                    : "text-gray-400 hover:text-green-600 hover:bg-green-50",
+                                )}
+                              >
+                                <ChevronUp className="h-4 w-4" />
+                              </button>
+                              <span className="text-sm font-medium text-gray-900">
+                                {alert.votes}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVote(alert.id, "down");
+                                }}
+                                className={cn(
+                                  "p-1 rounded transition-colors",
+                                  alert.userVote === "down"
+                                    ? "bg-red-100 text-red-600"
+                                    : "text-gray-400 hover:text-red-600 hover:bg-red-50",
+                                )}
+                              >
+                                <ChevronDown className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      </div>
+      )}
 
       <EventDetailsModal
         alert={selectedAlert}
