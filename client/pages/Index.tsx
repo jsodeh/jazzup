@@ -25,17 +25,42 @@ import {
   getUserVotes,
   createWelcomeAlert,
   formatTimeAgo,
-  type Alert,
-  type Comment,
+  type Alert as DbAlert,
+  type Comment as DbComment,
 } from "@/lib/alertsService";
 import { getAddressFromCoordinates } from "@/lib/googleMaps";
 
+// Display interfaces for the UI
+interface Alert {
+  id: string;
+  title: string;
+  location: string;
+  timeAgo: string;
+  votes: number;
+  lat: number;
+  lng: number;
+  description: string;
+  type: string;
+  userVote?: "up" | "down" | null;
+  comments: Comment[];
+}
+
+interface Comment {
+  id: string;
+  user: string;
+  text: string;
+  votes: number;
+  avatar: string;
+  timeAgo: string;
+  userVote?: "up" | "down" | null;
+}
+
 // Transform Supabase alert to display format
 const transformAlert = (
-  alert: Alert,
+  alert: DbAlert,
   userVotes: any[],
   commentVotes: any[],
-): any => {
+): Alert => {
   const userVote = userVotes.find((v) => v.alert_id === alert.id)?.vote_type;
   const transformedComments = alert.comments?.map((comment) => {
     const commentUserVote = commentVotes.find(
@@ -89,7 +114,7 @@ const getCityFromCoordinates = async (
 export default function Index() {
   const { isAuthenticated, user } = useAuth();
   const { requestPermission } = useLocationPermission();
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
@@ -131,7 +156,8 @@ export default function Index() {
               setUserLocation({ lat: latitude, lng: longitude, city });
 
               // Create welcome notification
-              const welcome = createWelcomeAlert(city, latitude, longitude);
+              const welcomeDb = createWelcomeAlert(city, latitude, longitude);
+              const welcome = transformAlert(welcomeDb, [], []);
               setWelcomeAlert(welcome);
               setSelectedAlert(welcome);
 
