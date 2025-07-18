@@ -10,18 +10,54 @@ import {
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
+// Add CSS for hiding scrollbar
+const style = `
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+// Inject styles
+if (typeof document !== "undefined") {
+  const styleElement = document.createElement("style");
+  styleElement.textContent = style;
+  document.head.appendChild(styleElement);
+}
+
+interface Alert {
+  id: string;
+  title: string;
+  location: string;
+  timeAgo: string;
+  votes: number;
+  lat: number;
+  lng: number;
+  description: string;
+  type: string;
+  userVote?: "up" | "down" | null;
+  comments: any[];
+}
+
 interface DirectionsCardProps {
   userLocation?: {
     lat: number;
     lng: number;
     city: string;
   } | null;
+  alerts?: Alert[];
   onGetDirections?: (destination: string) => void;
+  onAlertClick?: (alert: Alert) => void;
 }
 
 export default function DirectionsCard({
   userLocation,
+  alerts = [],
   onGetDirections,
+  onAlertClick,
 }: DirectionsCardProps) {
   const [destination, setDestination] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -60,6 +96,69 @@ export default function DirectionsCard({
       </div>
 
       <div className="px-6 pb-6">
+        {/* Alert Cards Section */}
+        {alerts.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-700">
+                {alerts.length} Alert{alerts.length > 1 ? "s" : ""} Nearby
+              </h3>
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
+              {alerts
+                .filter((alert) => alert.id !== "welcome")
+                .map((alert) => (
+                  <div
+                    key={alert.id}
+                    onClick={() => onAlertClick?.(alert)}
+                    className="flex-shrink-0 bg-white border-2 border-gray-200 rounded-xl p-3 cursor-pointer hover:border-red-300 hover:shadow-md transition-all duration-200 w-64"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={cn(
+                          "w-3 h-3 rounded-full mt-1 flex-shrink-0",
+                          alert.type === "emergency" && "bg-red-500",
+                          alert.type === "crime" && "bg-orange-500",
+                          alert.type === "traffic" && "bg-yellow-500",
+                          alert.type === "community" && "bg-blue-500",
+                        )}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 text-sm truncate">
+                          {alert.title}
+                        </h4>
+                        <p className="text-xs text-gray-600 truncate">
+                          {alert.location}
+                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-gray-500">
+                            {alert.timeAgo}
+                          </span>
+                          <span
+                            className={cn(
+                              "px-2 py-0.5 text-xs font-medium rounded-full",
+                              alert.type === "emergency" &&
+                                "bg-red-100 text-red-800",
+                              alert.type === "crime" &&
+                                "bg-orange-100 text-orange-800",
+                              alert.type === "traffic" &&
+                                "bg-yellow-100 text-yellow-800",
+                              alert.type === "community" &&
+                                "bg-blue-100 text-blue-800",
+                            )}
+                          >
+                            {alert.type}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
