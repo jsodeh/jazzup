@@ -34,8 +34,8 @@ export default function LocationPermissionModal({
             Location Access Required
           </h2>
           <p className="text-gray-600 text-sm leading-relaxed">
-            Jazzup needs access to your location to show you relevant safety
-            alerts and incidents in your area.
+            Jazzup needs access to your location to provide accurate
+            turn-by-turn directions and show safety alerts along your route.
           </p>
         </div>
 
@@ -43,24 +43,24 @@ export default function LocationPermissionModal({
         <div className="px-6 pb-4">
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  Personalized Safety Alerts
+                  Turn-by-Turn Navigation
                 </p>
                 <p className="text-xs text-gray-600">
-                  Get notifications about incidents near you
+                  Get precise directions to any destination
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <Shield className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  Accurate Location Display
+                  Route Safety Alerts
                 </p>
                 <p className="text-xs text-gray-600">
-                  See your exact position on the map
+                  See incidents and hazards along your route
                 </p>
               </div>
             </div>
@@ -68,10 +68,10 @@ export default function LocationPermissionModal({
               <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  Emergency Features
+                  Real-time Traffic Updates
                 </p>
                 <p className="text-xs text-gray-600">
-                  Quickly share your location in emergencies
+                  Avoid traffic jams and road closures
                 </p>
               </div>
             </div>
