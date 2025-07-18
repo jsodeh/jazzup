@@ -26,12 +26,12 @@ export default function PermissionModal({
       icon: <MapPin className="w-12 h-12 text-blue-500" />,
       title: "Location Permission Required",
       description:
-        "SafeAlert needs access to your location to show nearby alerts and provide accurate directions. Your location data is kept private and secure.",
+        "Jazzup needs access to your location to provide accurate turn-by-turn directions and show relevant safety alerts along your route. Your location data is kept private and secure.",
       benefits: [
-        "See alerts in your immediate area",
-        "Get precise navigation directions",
-        "Receive location-based safety notifications",
-        "Help your community with accurate incident reporting",
+        "Get precise turn-by-turn navigation",
+        "See safety alerts along your route",
+        "Find optimal paths to your destination",
+        "Receive real-time traffic and road updates",
       ],
       primaryAction: "Allow Location Access",
       secondaryAction: "Use Without Location",
