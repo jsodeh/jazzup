@@ -665,10 +665,10 @@ export default function Index() {
         }}
         onVote={handleVote}
         onCommentVote={handleCommentVote}
-        onAddComment={handleAddComment}
+        onAddComment={(alertId, commentText) => handleAddComment(commentText)}
         isAuthenticated={isAuthenticated}
-        onAuthPrompt={(type) => {
-          setAuthPromptType(type);
+        onAuthRequired={() => {
+          setAuthPromptType("comment");
           setShowAuthPrompt(true);
         }}
       />
@@ -676,7 +676,7 @@ export default function Index() {
       <AuthPromptModal
         isOpen={showAuthPrompt}
         onClose={() => setShowAuthPrompt(false)}
-        type={authPromptType}
+        trigger={authPromptType === "create" ? "add_alert" : authPromptType}
       />
     </div>
   );
