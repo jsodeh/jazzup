@@ -14,6 +14,8 @@ import {
 import { cn } from "@/lib/utils";
 import EventDetailsModal from "@/components/EventDetailsModal";
 import AuthPromptModal from "@/components/AuthPromptModal";
+import LocationPermissionModal from "@/components/LocationPermissionModal";
+import ActionButtonTooltip from "@/components/ActionButtonTooltip";
 import { useAuth, useLocationPermission } from "@/lib/auth";
 
 interface Alert {
@@ -158,16 +160,22 @@ export default function Index() {
     lng: number;
     city: string;
   } | null>(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+    const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [welcomeAlert, setWelcomeAlert] = useState<Alert | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
-  // Request location permission immediately on app load
+    // Show location permission modal on app load
   useEffect(() => {
-    const requestLocationOnLoad = async () => {
-      setIsLoadingLocation(true);
-      try {
-        const granted = await requestPermission();
+    setShowLocationModal(true);
+  }, []);
+
+  const handleLocationAccept = async () => {
+    setShowLocationModal(false);
+    setIsLoadingLocation(true);
+
+    try {
+      const granted = await requestPermission();
         if (granted) {
           // Get user's current location
           navigator.geolocation.getCurrentPosition(
@@ -293,7 +301,7 @@ export default function Index() {
       }
     };
 
-    requestLocationOnLoad();
+        requestLocationOnLoad();
   }, []); // Empty dependency array - only run once on mount
 
   const handleCardClick = (alert: Alert) => {
@@ -507,27 +515,38 @@ export default function Index() {
             selectedAlert ? "bottom-80" : "bottom-28",
           )}
         >
-          <div className="flex flex-col space-y-4">
-            <Link
-              to="/directions"
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-colors"
-            >
-              <Send className="h-6 w-6" />
-            </Link>
-            <button className="bg-white hover:bg-gray-50 text-gray-700 rounded-full p-4 shadow-lg transition-colors">
-              <Target className="h-6 w-6" />
-            </button>
-            <button
-              className="bg-green-600 hover:bg-green-700 text-white rounded-full p-4 shadow-lg transition-colors"
-              onClick={() => {
-                if (!isAuthenticated) {
-                  setAuthPromptType("create");
-                  setShowAuthPrompt(true);
-                }
-              }}
-            >
-              <Plus className="h-6 w-6" />
-            </button>
+                  <div className="flex flex-col space-y-4">
+            <ActionButtonTooltip tooltip="Get Directions">
+              <Link
+                to="/directions"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-colors"
+              >
+                <Send className="h-6 w-6" />
+              </Link>
+            </ActionButtonTooltip>
+
+            <ActionButtonTooltip tooltip="Recenter Map">
+              <button
+                onClick={recenterMap}
+                className="bg-white hover:bg-gray-50 text-gray-700 rounded-full p-4 shadow-lg transition-colors"
+              >
+                <Target className="h-6 w-6" />
+              </button>
+            </ActionButtonTooltip>
+
+            <ActionButtonTooltip tooltip="Add Alert">
+              <button
+                className="bg-green-600 hover:bg-green-700 text-white rounded-full p-4 shadow-lg transition-colors"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setAuthPromptType("create");
+                    setShowAuthPrompt(true);
+                  }
+                }}
+              >
+                <Plus className="h-6 w-6" />
+              </button>
+            </ActionButtonTooltip>
           </div>
         </div>
 
@@ -673,10 +692,16 @@ export default function Index() {
         }}
       />
 
-      <AuthPromptModal
+            <AuthPromptModal
         isOpen={showAuthPrompt}
         onClose={() => setShowAuthPrompt(false)}
         trigger={authPromptType === "create" ? "add_alert" : authPromptType}
+      />
+
+      <LocationPermissionModal
+        isOpen={showLocationModal}
+        onAccept={handleLocationAccept}
+        onDeny={handleLocationDeny}
       />
     </div>
   );
