@@ -146,7 +146,7 @@ const createWelcomeAlert = (city: string, lat: number, lng: number): Alert => ({
 
 export default function Index() {
   const { isAuthenticated } = useAuth();
-  const { hasPermission, requestPermission } = useLocationPermission();
+  const { requestPermission } = useLocationPermission();
   const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
@@ -160,12 +160,12 @@ export default function Index() {
     lng: number;
     city: string;
   } | null>(null);
-    const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [welcomeAlert, setWelcomeAlert] = useState<Alert | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
 
-    // Show location permission modal on app load
+  // Show location permission modal on app load
   useEffect(() => {
     setShowLocationModal(true);
   }, []);
@@ -176,151 +176,78 @@ export default function Index() {
 
     try {
       const granted = await requestPermission();
-        if (granted) {
-          // Get user's current location
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              try {
-                const { latitude, longitude } = position.coords;
-                console.log("Location obtained:", { latitude, longitude });
+      if (granted) {
+        // Get user's current location
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              const { latitude, longitude } = position.coords;
+              console.log("Location obtained:", { latitude, longitude });
 
-                // Try to get city name from coordinates
-                const city = await getCityFromCoordinates(latitude, longitude);
-                setUserLocation({ lat: latitude, lng: longitude, city });
+              // Try to get city name from coordinates
+              const city = await getCityFromCoordinates(latitude, longitude);
+              setUserLocation({ lat: latitude, lng: longitude, city });
 
-                // Create welcome notification
-                const welcome = createWelcomeAlert(city, latitude, longitude);
-                setWelcomeAlert(welcome);
-                setSelectedAlert(welcome);
-
-                // Load alerts around user's location
-                const nearbyAlerts = await loadNearbyAlerts(
-                  latitude,
-                  longitude,
-                );
-                setAlerts([welcome, ...nearbyAlerts]);
-
-                console.log(
-                  `Welcome to ${city}! Found ${nearbyAlerts.length} nearby alerts.`,
-                );
-              } catch (error) {
-                console.error("Error processing location:", error);
-                // Fall back to default behavior
-                const fallbackCity = "San Jose";
-                setUserLocation({
-                  lat: 37.3387,
-                  lng: -121.8853,
-                  city: fallbackCity,
-                });
-                const welcome = createWelcomeAlert(
-                  fallbackCity,
-                  37.3387,
-                  -121.8853,
-                );
-                setWelcomeAlert(welcome);
-                setSelectedAlert(welcome);
-                setAlerts([welcome, ...mockAlerts]);
-              }
-            },
-            (error) => {
-              console.error("Geolocation error:", error);
-
-              // Enhanced error handling with specific error messages
-              let errorMessage = "Unknown geolocation error";
-              switch (error.code) {
-                case 1:
-                  errorMessage =
-                    "User denied location permission. Please enable location access in your browser settings to see personalized alerts.";
-                  break;
-                case 2:
-                  errorMessage =
-                    "Location information unavailable. Your device may not support location services.";
-                  break;
-                case 3:
-                  errorMessage =
-                    "Location request timed out. Please check your internet connection and try again.";
-                  break;
-                default:
-                  errorMessage = `Geolocation failed with error code ${error.code}: ${error.message}`;
-              }
-
-              // Set user-friendly error message
-              setLocationError(errorMessage);
-
-              // Fallback to San Jose if location fails
-              const fallbackCity = "San Jose";
-              setUserLocation({
-                lat: 37.3387,
-                lng: -121.8853,
-                city: fallbackCity,
-              });
-              const welcome = createWelcomeAlert(
-                fallbackCity,
-                37.3387,
-                -121.8853,
-              );
+              // Create welcome notification
+              const welcome = createWelcomeAlert(city, latitude, longitude);
               setWelcomeAlert(welcome);
               setSelectedAlert(welcome);
-              setAlerts([welcome, ...mockAlerts]);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 15000,
-              maximumAge: 300000,
-            },
-          );
-        } else {
-          // Permission denied, fall back to default location
-          console.warn("Location permission denied, using default location");
-          const fallbackCity = "San Jose";
-          setUserLocation({
-            lat: 37.3387,
-            lng: -121.8853,
-            city: fallbackCity,
-          });
-          const welcome = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
-          setWelcomeAlert(welcome);
-          setSelectedAlert(welcome);
-          setAlerts([welcome, ...mockAlerts]);
-        }
-      } catch (error) {
-        console.error("Error requesting location permission:", error);
-        // Fall back to default location on any error
-        const fallbackCity = "San Jose";
-        setUserLocation({
-          lat: 37.3387,
-          lng: -121.8853,
-          city: fallbackCity,
-        });
-        const welcome = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
-        setWelcomeAlert(welcome);
-        setSelectedAlert(welcome);
-        setAlerts([welcome, ...mockAlerts]);
+
+              // Load alerts around user's location
+              const nearbyAlerts = await loadNearbyAlerts(latitude, longitude);
+              setAlerts([welcome, ...nearbyAlerts]);
+
+              console.log(
+                `Welcome to ${city}! Found ${nearbyAlerts.length} nearby alerts.`,
+              );
+            } catch (error) {
+              console.error("Error processing location:", error);
+              handleLocationFallback();
             } finally {
+              setIsLoadingLocation(false);
+            }
+          },
+          (error) => {
+            console.error("Geolocation error:", error);
+            let errorMessage = "Unknown geolocation error";
+            switch (error.code) {
+              case 1:
+                errorMessage = "User denied location permission";
+                break;
+              case 2:
+                errorMessage = "Location information unavailable";
+                break;
+              case 3:
+                errorMessage = "Location request timed out";
+                break;
+            }
+            setLocationError(errorMessage);
+            handleLocationFallback();
+            setIsLoadingLocation(false);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 300000,
+          },
+        );
+      } else {
+        handleLocationFallback();
         setIsLoadingLocation(false);
       }
     } catch (error) {
       console.error("Error requesting location permission:", error);
-      // Fall back to default location on any error
-      const fallbackCity = "San Jose";
-      setUserLocation({
-        lat: 37.3387,
-        lng: -121.8853,
-        city: fallbackCity,
-      });
-      const welcome = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
-      setWelcomeAlert(welcome);
-      setSelectedAlert(welcome);
-      setAlerts([welcome, ...mockAlerts]);
+      handleLocationFallback();
       setIsLoadingLocation(false);
     }
   };
 
   const handleLocationDeny = () => {
     setShowLocationModal(false);
-    setIsLoadingLocation(true);
+    handleLocationFallback();
+  };
 
-    // Use default location
+  const handleLocationFallback = () => {
     const fallbackCity = "San Jose";
     setUserLocation({
       lat: 37.3387,
@@ -331,7 +258,6 @@ export default function Index() {
     setWelcomeAlert(welcome);
     setSelectedAlert(welcome);
     setAlerts([welcome, ...mockAlerts]);
-    setIsLoadingLocation(false);
   };
 
   const recenterMap = () => {
@@ -553,7 +479,7 @@ export default function Index() {
             selectedAlert ? "bottom-80" : "bottom-28",
           )}
         >
-                  <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-4">
             <ActionButtonTooltip tooltip="Get Directions">
               <Link
                 to="/directions"
@@ -730,7 +656,7 @@ export default function Index() {
         }}
       />
 
-            <AuthPromptModal
+      <AuthPromptModal
         isOpen={showAuthPrompt}
         onClose={() => setShowAuthPrompt(false)}
         trigger={authPromptType === "create" ? "add_alert" : authPromptType}
