@@ -21,7 +21,7 @@ export type CommentInsert = Database["public"]["Tables"]["comments"]["Insert"];
 export async function getNearbyAlerts(
   latitude: number,
   longitude: number,
-  radiusKm: number = 10,
+  radiusKm: number = 50,
 ): Promise<Alert[]> {
   try {
     const { data, error } = await supabase
