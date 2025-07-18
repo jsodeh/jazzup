@@ -237,7 +237,8 @@ export default function Index() {
       lng: -121.8853,
       city: fallbackCity,
     });
-    const welcome = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
+    const welcomeDb = createWelcomeAlert(fallbackCity, 37.3387, -121.8853);
+    const welcome = transformAlert(welcomeDb, [], []);
     setWelcomeAlert(welcome);
     setSelectedAlert(welcome);
 
