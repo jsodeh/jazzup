@@ -132,7 +132,6 @@ export default function Index() {
   const [welcomeAlert, setWelcomeAlert] = useState<Alert | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [showDirectionsFirst, setShowDirectionsFirst] = useState(true);
 
   // Show location permission modal on app load
   useEffect(() => {
@@ -274,14 +273,6 @@ export default function Index() {
   const handleGetDirections = (destination: string) => {
     // Navigate to directions page with destination pre-filled
     window.location.href = `/directions?destination=${encodeURIComponent(destination)}`;
-  };
-
-  const toggleToAlerts = () => {
-    setShowDirectionsFirst(false);
-  };
-
-  const toggleToDirections = () => {
-    setShowDirectionsFirst(true);
   };
 
   const handleCardClick = (alert: Alert) => {
