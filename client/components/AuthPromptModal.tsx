@@ -32,27 +32,27 @@ export default function AuthPromptModal({
       case "comment":
         return {
           icon: <MessageCircle className="w-12 h-12 text-green-500" />,
-          title: "Share Community Updates",
+          title: "Share Route Information",
           description:
-            "Contribute valuable information to help your neighbors stay informed about local incidents and safety situations.",
+            "Help other travelers by sharing real-time updates about road conditions and incidents along this route.",
           benefits: [
-            "Share real-time updates",
-            "Help your community stay informed",
-            "Build local safety network",
-            "Get notifications on your reports",
+            "Help others plan safer routes",
+            "Share real-time traffic updates",
+            "Report road hazards and conditions",
+            "Build community trust for better navigation",
           ],
         };
       case "add_alert":
         return {
           icon: <Shield className="w-12 h-12 text-red-500" />,
-          title: "Report Safety Incidents",
+          title: "Report Route Hazards",
           description:
-            "Quickly alert your community about safety incidents, traffic issues, or emergencies in your area.",
+            "Help other travelers by reporting road hazards, traffic incidents, and route conditions that could affect navigation.",
           benefits: [
-            "Help keep neighbors safe",
-            "Real-time incident reporting",
-            "Emergency contact integration",
-            "Location-based notifications",
+            "Help others avoid traffic jams",
+            "Report road hazards and construction",
+            "Share real-time route conditions",
+            "Contribute to safer navigation for everyone",
           ],
         };
       case "profile":
@@ -63,10 +63,10 @@ export default function AuthPromptModal({
           description:
             "Create your profile to access all Jazzup features and get the best directions and safety updates for your area.",
           benefits: [
-            "Verify and comment on alerts",
-            "Create safety reports",
-            "Build community trust score",
-            "Access emergency features",
+            "Save favorite destinations for quick access",
+            "Get personalized route recommendations",
+            "Access to verified incident reports along routes",
+            "Priority navigation and safety alerts",
           ],
         };
     }
