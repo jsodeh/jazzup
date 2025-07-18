@@ -547,12 +547,12 @@ export default function Index() {
         >
           <div className="flex flex-col space-y-4">
             <ActionButtonTooltip tooltip="Get Directions" autoShow delay={3000}>
-              <Link
-                to="/directions"
+              <button
+                onClick={() => (window.location.href = "/directions")}
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-colors"
               >
                 <Send className="h-6 w-6" />
-              </Link>
+              </button>
             </ActionButtonTooltip>
 
             <ActionButtonTooltip tooltip="Recenter Map" autoShow delay={4000}>

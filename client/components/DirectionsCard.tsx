@@ -66,11 +66,11 @@ export default function DirectionsCard({
             <Navigation className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900">Where to next?</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              Need Directions?
+            </h2>
             <p className="text-sm text-gray-600">
-              {userLocation
-                ? `From ${userLocation.city}`
-                : "Get turn-by-turn directions"}
+              {userLocation?.city || "Unknown location"}
             </p>
           </div>
         </div>
