@@ -49,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       } else {
         setProfile(null);
       }
+
       setLoading(false);
     });
 
@@ -63,9 +64,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         .eq("id", userId)
         .single();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return;
+      if (error && error.code !== "PGRST116") {
+        throw error;
       }
 
       setProfile(data);
@@ -75,90 +75,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signUp = async (email: string, password: string, userData: any) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userData,
+      },
+    });
 
-      if (error) throw error;
+    if (error) throw error;
 
-      if (data.user) {
-        // Create profile
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: data.user.id,
-          email: data.user.email!,
-          full_name: userData.name,
-          phone: userData.phone,
-          trust_score: 0,
-          is_verified: false,
-          emergency_contact_name: userData.emergencyContact?.name || null,
-          emergency_contact_phone: userData.emergencyContact?.phone || null,
-          emergency_contact_relationship:
-            userData.emergencyContact?.relationship || null,
-        });
-
-        if (profileError) {
-          console.error("Error creating profile:", profileError);
-          throw profileError;
-        }
-      }
-    } catch (error) {
-      console.error("Error signing up:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+    // Profile will be created via database trigger
   };
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error signing in:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+    if (error) throw error;
   };
 
   const signOut = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error signing out:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) throw new Error("No authenticated user");
+    if (!user) throw new Error("No user logged in");
 
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq("id", user.id);
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("id", user.id)
+      .select()
+      .single();
 
-      if (error) throw error;
-
-      // Refresh profile
-      await fetchProfile(user.id);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      throw error;
-    }
+    if (error) throw error;
+    setProfile(data);
   };
 
   const value = {
@@ -184,15 +139,18 @@ export const useAuth = () => {
   return context;
 };
 
-// Hook for checking if user has location permission
+// Location Permission Hook
 export const useLocationPermission = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(false);
 
-  const checkPermission = async () => {
+  const checkPermission = async (): Promise<boolean> => {
+    if (isChecking) return hasPermission ?? false;
+
     setIsChecking(true);
     try {
       if (!navigator.geolocation) {
+        console.warn("Geolocation is not supported by this browser");
         setHasPermission(false);
         return false;
       }
@@ -202,37 +160,42 @@ export const useLocationPermission = () => {
         const permission = await navigator.permissions.query({
           name: "geolocation" as PermissionName,
         });
-        const granted = permission.state === "granted";
-        setHasPermission(granted);
-        return granted;
-      } else {
-        // Fallback for browsers without permissions API
-        return new Promise<boolean>((resolve) => {
-          navigator.geolocation.getCurrentPosition(
-            () => {
-              setHasPermission(true);
-              resolve(true);
-            },
-<<<<<<< HEAD
-            (error) => {
-              console.warn("Permission check failed:", error);
-              setHasPermission(false);
-              resolve(false);
-            },
-            {
-              enableHighAccuracy: false, // Less demanding for permission check
-              timeout: 5000,
-              maximumAge: 600000, // 10 minutes
-            },
-=======
-            () => {
-              setHasPermission(false);
-              resolve(false);
-            },
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
-          );
-        });
+        if (permission.state === "granted") {
+          setHasPermission(true);
+          return true;
+        } else if (permission.state === "denied") {
+          setHasPermission(false);
+          return false;
+        }
       }
+
+      // For browsers that don't support permissions API or when state is 'prompt'
+      return new Promise((resolve) => {
+        const timeoutId = setTimeout(() => {
+          console.warn("Location permission check timed out");
+          setHasPermission(false);
+          resolve(false);
+        }, 5000);
+
+        navigator.geolocation.getCurrentPosition(
+          () => {
+            clearTimeout(timeoutId);
+            setHasPermission(true);
+            resolve(true);
+          },
+          (error) => {
+            clearTimeout(timeoutId);
+            console.warn("Permission check failed:", error);
+            setHasPermission(false);
+            resolve(false);
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: 600000,
+          },
+        );
+      });
     } catch (error) {
       console.error("Error checking location permission:", error);
       setHasPermission(false);
@@ -244,7 +207,6 @@ export const useLocationPermission = () => {
 
   const requestPermission = (): Promise<boolean> => {
     return new Promise((resolve) => {
-<<<<<<< HEAD
       if (!navigator.geolocation) {
         console.warn("Geolocation is not supported by this browser");
         setHasPermission(false);
@@ -259,17 +221,15 @@ export const useLocationPermission = () => {
           resolve(true);
         },
         (error) => {
-          // Detailed error logging
           let errorMessage = "Unknown geolocation error";
-
           switch (error.code) {
-            case 1: // PERMISSION_DENIED
+            case 1:
               errorMessage = "User denied location permission";
               break;
-            case 2: // POSITION_UNAVAILABLE
+            case 2:
               errorMessage = "Location information unavailable";
               break;
-            case 3: // TIMEOUT
+            case 3:
               errorMessage = "Location request timed out";
               break;
           }
@@ -280,24 +240,12 @@ export const useLocationPermission = () => {
             details: errorMessage,
           });
 
-=======
-      navigator.geolocation.getCurrentPosition(
-        () => {
-          setHasPermission(true);
-          resolve(true);
-        },
-        () => {
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
           setHasPermission(false);
           resolve(false);
         },
         {
           enableHighAccuracy: true,
-<<<<<<< HEAD
-          timeout: 15000, // Increased timeout
-=======
-          timeout: 10000,
->>>>>>> b39ed610819970d67fa9af882f5d9bd1cfc707a4
+          timeout: 15000,
           maximumAge: 300000,
         },
       );
@@ -310,29 +258,41 @@ export const useLocationPermission = () => {
 
   return {
     hasPermission,
-    isChecking,
-    checkPermission,
     requestPermission,
+    checkPermission,
+    isChecking,
   };
 };
 
-// Hook for notification permissions
+// Notification Permission Hook
 export const useNotificationPermission = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
-  const checkPermission = () => {
+  const checkPermission = async (): Promise<boolean> => {
     if (!("Notification" in window)) {
+      console.warn("This browser does not support notifications");
       setHasPermission(false);
       return false;
     }
 
-    const granted = Notification.permission === "granted";
-    setHasPermission(granted);
-    return granted;
+    const permission = Notification.permission === "granted";
+    setHasPermission(permission);
+    return permission;
   };
 
   const requestPermission = async (): Promise<boolean> => {
     if (!("Notification" in window)) {
+      console.warn("This browser does not support notifications");
+      setHasPermission(false);
+      return false;
+    }
+
+    if (Notification.permission === "granted") {
+      setHasPermission(true);
+      return true;
+    }
+
+    if (Notification.permission === "denied") {
       setHasPermission(false);
       return false;
     }
@@ -355,7 +315,7 @@ export const useNotificationPermission = () => {
 
   return {
     hasPermission,
-    checkPermission,
     requestPermission,
+    checkPermission,
   };
 };
