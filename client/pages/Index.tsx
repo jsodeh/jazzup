@@ -294,7 +294,7 @@ export default function Index() {
     };
 
     requestLocationOnLoad();
-  }, [requestPermission]);
+  }, []); // Empty dependency array - only run once on mount
 
   const handleCardClick = (alert: Alert) => {
     setSelectedAlert(alert);
