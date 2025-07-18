@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import {
   ChevronUp,
   ChevronDown,
@@ -122,7 +121,6 @@ export default function Index() {
   const [authPromptType, setAuthPromptType] = useState<
     "vote" | "comment" | "create" | "profile"
   >("vote");
-  const [currentPage, setCurrentPage] = useState(0);
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -405,19 +403,6 @@ export default function Index() {
     }
   };
 
-  const alertsPerPage = 3;
-  const totalPages = Math.ceil(alerts.length / alertsPerPage);
-  const startIndex = currentPage * alertsPerPage;
-  const visibleAlerts = alerts.slice(startIndex, startIndex + alertsPerPage);
-
-  const nextPage = () => {
-    setCurrentPage((prev) => (prev + 1) % totalPages);
-  };
-
-  const prevPage = () => {
-    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
-  };
-
   if (isLoadingLocation) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -556,148 +541,14 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Bottom Sheet - Directions Card or Alerts */}
+        {/* Bottom Sheet - Integrated Directions Card with Alerts */}
         <div className="absolute bottom-0 left-0 right-0 z-10">
-          {showDirectionsFirst ? (
-            <DirectionsCard
-              userLocation={userLocation}
-              alerts={alerts}
-              onGetDirections={handleGetDirections}
-              onAlertClick={handleCardClick}
-            />
-          ) : (
-            <div className="bg-white rounded-t-3xl shadow-2xl">
-              <div className="flex justify-center py-3">
-                <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
-              </div>
-
-              <div className="px-6 pb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">
-                      Recent Alerts
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      {userLocation?.city || "San Jose"} • {alerts.length}{" "}
-                      active
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={toggleToDirections}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                    >
-                      Get Directions
-                    </button>
-                    {totalPages > 1 && (
-                      <>
-                        <button
-                          onClick={prevPage}
-                          className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                        >
-                          <ChevronUp className="h-4 w-4 text-gray-600" />
-                        </button>
-                        <span className="text-xs text-gray-500">
-                          {currentPage + 1}/{totalPages}
-                        </span>
-                        <button
-                          onClick={nextPage}
-                          className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                        >
-                          <ChevronDown className="h-4 w-4 text-gray-600" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {visibleAlerts.map((alert) => (
-                    <div
-                      key={alert.id}
-                      className={cn(
-                        "p-4 rounded-xl border cursor-pointer transition-all duration-200",
-                        selectedAlert?.id === alert.id
-                          ? "bg-blue-50 border-blue-200 shadow-md"
-                          : "bg-white border-gray-200 hover:bg-gray-50",
-                        alert.id === "welcome" &&
-                          "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
-                      )}
-                      onClick={() => handleCardClick(alert)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="font-semibold text-gray-900">
-                              {alert.title}
-                            </h3>
-                            <span
-                              className={cn(
-                                "px-2 py-0.5 text-xs font-medium rounded-full",
-                                alert.type === "emergency" &&
-                                  "bg-red-100 text-red-800",
-                                alert.type === "crime" &&
-                                  "bg-orange-100 text-orange-800",
-                                alert.type === "traffic" &&
-                                  "bg-yellow-100 text-yellow-800",
-                                alert.type === "community" &&
-                                  "bg-blue-100 text-blue-800",
-                              )}
-                            >
-                              {alert.type}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {alert.location}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {alert.timeAgo}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-3 ml-4">
-                          {alert.id !== "welcome" && (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleVote(alert.id, "up");
-                                }}
-                                className={cn(
-                                  "p-1 rounded transition-colors",
-                                  alert.userVote === "up"
-                                    ? "bg-green-100 text-green-600"
-                                    : "text-gray-400 hover:text-green-600 hover:bg-green-50",
-                                )}
-                              >
-                                <ChevronUp className="h-4 w-4" />
-                              </button>
-                              <span className="text-sm font-medium text-gray-900">
-                                {alert.votes}
-                              </span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleVote(alert.id, "down");
-                                }}
-                                className={cn(
-                                  "p-1 rounded transition-colors",
-                                  alert.userVote === "down"
-                                    ? "bg-red-100 text-red-600"
-                                    : "text-gray-400 hover:text-red-600 hover:bg-red-50",
-                                )}
-                              >
-                                <ChevronDown className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          <DirectionsCard
+            userLocation={userLocation}
+            alerts={alerts}
+            onGetDirections={handleGetDirections}
+            onAlertClick={handleCardClick}
+          />
         </div>
       </div>
 
