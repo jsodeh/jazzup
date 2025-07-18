@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Navigation,
@@ -10,7 +10,7 @@ import {
   Search,
   Target,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 type TravelMode = "driving" | "transit" | "walking";
@@ -23,12 +23,20 @@ interface DirectionResult {
 }
 
 export default function Directions() {
+  const [searchParams] = useSearchParams();
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [selectedMode, setSelectedMode] = useState<TravelMode>("driving");
   const [isCalculating, setIsCalculating] = useState(false);
   const [results, setResults] = useState<DirectionResult | null>(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const destinationParam = searchParams.get("destination");
+    if (destinationParam) {
+      setDestination(destinationParam);
+    }
+  }, [searchParams]);
 
   const handleCalculateDirections = async () => {
     if (!origin.trim() || !destination.trim()) {
